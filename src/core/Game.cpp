@@ -15,31 +15,32 @@ Game::Game()
     SetTargetFPS(TARGET_FPS);
     //SetExitKey(0);
 
-    renderTarget = LoadRenderTexture(LEVEL_WIDTH, LEVEL_HEIGHT);
-
     srand(time(0));
 }
 
 Game::~Game()
 {
-    UnloadRenderTexture(renderTarget);
+
 }
 
 void Game::loadTextures()
 {
-    TextureInfo::load("tex_BaseTile", FROM_SPRITES_FOLDER("tile1.png"));
     TextureInfo::load("tex_Player", FROM_SPRITES_FOLDER("player.png"));
+    TextureInfo::load("tex_BaseTile", FROM_SPRITES_FOLDER("tile1.png"));
+    TextureInfo::load("tex_BaseTileBG", FROM_SPRITES_FOLDER("bg_tile1.png"));
 }
 
 void Game::loadSprites()
 {
-    Sprite::load("spr_BaseTile", TextureInfo::get("tex_BaseTile").texture, Rectangle{ 0, 0, 8, 8 }, false);
     Sprite::load("spr_PlayerIdle_R", TextureInfo::get("tex_Player").texture, Rectangle{ 0, 0, 8, 8 }, false);
     Sprite::load("spr_PlayerIdle_L", TextureInfo::get("tex_Player").texture, Rectangle{ 0, 0, 8, 8 }, true);
     Sprite::load("spr_PlayerJump_R", TextureInfo::get("tex_Player").texture, Rectangle{ 8, 8, 8, 8 }, false);
     Sprite::load("spr_PlayerJump_L", TextureInfo::get("tex_Player").texture, Rectangle{ 8, 8, 8, 8 }, true);
     Sprite::load("spr_PlayerFall_R", TextureInfo::get("tex_Player").texture, Rectangle{ 16, 0, 8, 8 }, false);
     Sprite::load("spr_PlayerFall_L", TextureInfo::get("tex_Player").texture, Rectangle{ 16, 0, 8, 8 }, true);
+
+    Sprite::load("spr_BaseTile", TextureInfo::get("tex_BaseTile").texture, Rectangle{ 0, 0, 8, 8 }, false);
+    Sprite::load("spr_BaseTileBG", TextureInfo::get("tex_BaseTileBG").texture, Rectangle{ 0, 0, 32, 32 }, false);
 }
 
 void Game::loadAnimations()
@@ -73,19 +74,9 @@ void Game::update(float t)
 void Game::draw()
 {
     BeginDrawing();
-        BeginTextureMode(renderTarget);
-            ClearBackground(BLACK);
-            level.draw();
-            player.draw();
-        EndTextureMode();
-
-        DrawTexturePro(
-            renderTarget.texture,
-            { 0, 0, LEVEL_WIDTH, -LEVEL_HEIGHT },
-            { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT },
-            {},
-            0,
-            WHITE);
+    ClearBackground(BLACK);
+    level.draw();
+    player.draw();
     EndDrawing();
 }
 
@@ -116,4 +107,9 @@ View& Game::getView()
 Level& Game::getLevel()
 {
     return instance().level;
+}
+
+Player& Game::getPlayer()
+{
+    return instance().player;
 }

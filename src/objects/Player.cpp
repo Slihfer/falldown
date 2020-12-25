@@ -80,13 +80,8 @@ void Player::update(float t)
         setState(Falling);
 }
 
-#include <sstream>
 void Player::draw()
 {
-    std::ostringstream ss;
-    ss << stateTime;
-    DrawText(ss.str().c_str(), 0, 0, 5, WHITE);
-
     switch (state)
     {
     case Idle:

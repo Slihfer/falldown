@@ -11,7 +11,6 @@ private:
     Level level;
     View view;
     Player player;
-    RenderTexture renderTarget;
 
 //Constructors/Destructors
 private:
@@ -42,4 +41,5 @@ public:
 
     static View& getView();
     static Level& getLevel();
+    static Player& getPlayer();
 };

@@ -100,6 +100,10 @@ void Level::draw()
 {
     View& view = Game::getView();
 
+    for (int i = 0; i < MAX_TILES_X / 4; ++i)
+        for (int j = 0; j < MAX_TILES_Y / 4 + 1; ++j)
+            view.drawSpriteParallax(Sprite::get("spr_BaseTileBG"), i * TILE_DIMENSIONS * 8, j * TILE_DIMENSIONS * 8 + floor(y / TILE_DIMENSIONS / 8) * TILE_DIMENSIONS * 8, 0.5f);
+
     for (int i = 0; i < MAX_TILES_X; ++i)
         for (int j = 0; j < MAX_TILES_Y; ++j)
             if (getTile(i, (topRow + j) % MAX_TILES_Y) == TileType::Filled)
