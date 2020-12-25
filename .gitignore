@@ -1,0 +1,62 @@
+# CMake
+/out/
+
+# Doxygen
+/doxygen/
+
+# Visual Studio
+.vs/
+*.vcxproj*
+
+# Folders
+build
+
+# OS specific files
+.DS_Store
+
+# Editors
+.idea
+.vscode
+
+# Precompiled headers
+*.gch
+*.pch
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Static libraries and objects
+*.o
+*.obj
+*.lo
+*.a
+*.lib
+*.la
+
+# Dynamic libraries
+*.so
+*.so.*
+*.dll
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# CMake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+cmake-build-debug
+_deps
