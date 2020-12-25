@@ -12,3 +12,13 @@ Sprite& Animation::getCurrentSprite(float animTime)
 }
 
 TextureInfo::TextureInfo(const char* filePath) : texture(LoadTexture(filePath)) {}
+
+TextureInfo::~TextureInfo()
+{
+    UnloadTexture(texture);
+}
+
+Sprite::Sprite(const Texture& baseTexture, Rectangle subArea, bool mirror) :
+    baseTexture(baseTexture),
+    subArea(subArea),
+    mirror(mirror) {}

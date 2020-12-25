@@ -1,11 +1,25 @@
 #include "View.h"
 
-void View::drawSprite(Sprite& sprite, Vector2 position)
+#include "core/constants.h"
+
+View::View() : y(0), scrollSpeed(2) {}
+
+void View::drawSprite(const Sprite& sprite, Vector2 position)
 {
     drawSprite(sprite, position.x, position.y);
 }
 
-void View::drawSprite(Sprite& sprite, float x, float y)
+void View::drawSprite(const Sprite& sprite, float x, float y)
 {
-    DrawTexture(sprite.baseTexture, x - sprite.baseTexture.width / 2, (y - sprite.baseTexture.height / 2) - this->y, WHITE);
+    DrawTexture(sprite.baseTexture, x, y - this->y, WHITE);
+}
+
+void View::update(float t)
+{
+    y += t * scrollSpeed * TILE_DIMENSIONS;
+}
+
+float View::getY()
+{
+    return y;
 }

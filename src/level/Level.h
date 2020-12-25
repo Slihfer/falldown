@@ -2,27 +2,32 @@
 
 #include <vector>
 
+#include <raylib.h>
+
 enum TileType { Empty, Filled, Count };
 
-class TileGrid
+class Level
 {
 private:
     std::vector<std::vector<TileType>> tiles;
+    float y;
     int topRow;
     int nextGroundRow;
 
     void replaceTopRow();
+    TileType& getTile(int gridX, int gridY);
 
 public:
-    TileGrid();
+    Level();
 
     std::vector<std::vector<TileType>>& getTiles();
-    std::vector<TileType>& getTilesInRow(int y);
-    TileType& GetTile(int x, int y);
+    std::vector<TileType>& getTilesInRow(int row);
+    bool collides(float worldX, float worldY);
 
     int getTopRow();
     void generate();
     void advanceRow();
+    void update(float t);
     void draw();
     void print();
 };

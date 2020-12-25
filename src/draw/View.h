@@ -8,8 +8,14 @@ class View
 {
 private:
     float y;
+    float scrollSpeed;
 
 public:
-    void drawSprite(Sprite& sprite, Vector2 position);
-    void drawSprite(Sprite& sprite, float x, float y);
+    View();
+
+    void drawSprite(const Sprite& sprite, Vector2 position);
+    void drawSprite(const Sprite& sprite, float x, float y);
+    void update(float t);
+
+    float getY();
 };

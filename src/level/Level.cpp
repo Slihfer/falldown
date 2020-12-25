@@ -6,8 +6,10 @@
 
 #include "core/constants.h"
 #include "util/random.h"
+#include "core/Game.h"
+#include "draw/View.h"
 
-TileGrid::TileGrid() : tiles(), topRow(0), nextGroundRow(MAX_TILES_Y - 1)
+Level::Level() : tiles(), y(-MAX_TILES_Y * TILE_DIMENSIONS), topRow(0), nextGroundRow(TILES_Y - 1)
 {
     tiles.reserve(MAX_TILES_Y);
 
@@ -22,29 +24,36 @@ TileGrid::TileGrid() : tiles(), topRow(0), nextGroundRow(MAX_TILES_Y - 1)
 
         tiles.push_back(row);
     }
+
+    generate();
 }
 
-std::vector<std::vector<TileType>>& TileGrid::getTiles()
+std::vector<std::vector<TileType>>& Level::getTiles()
 {
     return tiles;
 }
 
-std::vector<TileType>& TileGrid::getTilesInRow(int y)
+std::vector<TileType>& Level::getTilesInRow(int row)
 {
-    return getTiles()[y];
+    return getTiles()[row];
 }
 
-TileType& TileGrid::GetTile(int x, int y)
+bool Level::collides(float worldX, float worldY)
 {
-    return getTiles()[y][x];
+    return getTiles()[(topRow + static_cast<int>(worldY - y) / TILE_DIMENSIONS) % MAX_TILES_Y][worldX / TILE_DIMENSIONS] == TileType::Filled;
 }
 
-int TileGrid::getTopRow()
+TileType& Level::getTile(int gridX, int gridY)
+{
+    return getTiles()[gridY][gridX];
+}
+
+int Level::getTopRow()
 {
     return topRow;
 }
 
-void TileGrid::replaceTopRow()
+void Level::replaceTopRow()
 {
     std::vector<TileType>& topTiles = getTilesInRow(topRow);
 
@@ -68,36 +77,41 @@ void TileGrid::replaceTopRow()
     }
 }
 
-void TileGrid::generate()
+void Level::generate()
 {
     for (int i = 0; i < MAX_TILES_Y; ++i)
         advanceRow();
 }
 
-void TileGrid::advanceRow()
+void Level::advanceRow()
 {
     replaceTopRow();
     topRow = (topRow + 1) % MAX_TILES_Y;
+    y += TILE_DIMENSIONS;
 }
 
-void TileGrid::draw()
+void Level::update(float t)
 {
+    while (Game::getView().getY() >= y + TILE_DIMENSIONS)
+        advanceRow();
+}
+
+void Level::draw()
+{
+    View& view = Game::getView();
+
     for (int i = 0; i < MAX_TILES_X; ++i)
         for (int j = 0; j < MAX_TILES_Y; ++j)
-            DrawRectangle(
-                i * TILE_DIMENSIONS * ZOOM,
-                j * TILE_DIMENSIONS * ZOOM,
-                TILE_DIMENSIONS * ZOOM,
-                TILE_DIMENSIONS * ZOOM,
-                GetTile(i, (topRow + j) % MAX_TILES_Y) == TileType::Filled ? WHITE : BLACK);
+            if (getTile(i, (topRow + j) % MAX_TILES_Y) == TileType::Filled)
+                view.drawSprite(Sprite::get("spr_BaseTile"), i * TILE_DIMENSIONS, j * TILE_DIMENSIONS + y);
 }
 
-void TileGrid::print()
+void Level::print()
 {
     for (int j = 0; j < MAX_TILES_Y; ++j)
     {
          for (int i = 0; i < MAX_TILES_X; ++i)
-            std::cout << GetTile(i, j) << " ";
+            std::cout << getTile(i, j) << " ";
 
         std::cout << "\n";
     }

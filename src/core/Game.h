@@ -1,12 +1,17 @@
 #pragma once
 
-#include "level/level.h"
+#include "level/Level.h"
+#include "draw/View.h"
+#include "objects/Player.h"
 
 class Game
 {
 //Members
 private:
-    TileGrid level;
+    Level level;
+    View view;
+    Player player;
+    RenderTexture renderTarget;
 
 //Constructors/Destructors
 private:
@@ -18,7 +23,11 @@ public:
     
 //Instance Methods
 private:
-    void update();
+    void loadTextures();
+    void loadSprites();
+    void loadAnimations();
+
+    void update(float t);
     void draw();
 
 //Class Methods
@@ -30,4 +39,7 @@ public:
     }
 
     static void run();
+
+    static View& getView();
+    static Level& getLevel();
 };

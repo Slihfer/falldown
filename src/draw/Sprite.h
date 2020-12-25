@@ -6,11 +6,14 @@
 
 #include "util/Resource.h"
 
-struct Sprite
+class Sprite : public Resource<Sprite>
 {
-    Texture& baseTexture;
-    Rectangle subArea;
+public:
+    const Texture& baseTexture;
+    const Rectangle subArea;
     bool mirror;
+
+    Sprite(const Texture& baseTexture, Rectangle subArea, bool mirror);
 };
 
 class TextureInfo : public Resource<TextureInfo>
@@ -19,6 +22,7 @@ public:
     const Texture texture;
 
     TextureInfo(const char* filePath);
+    ~TextureInfo();
 };
 
 class Animation : public Resource<Animation>
