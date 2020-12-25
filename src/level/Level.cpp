@@ -90,7 +90,7 @@ void Level::advanceRow()
     y += TILE_DIMENSIONS;
 }
 
-void Level::update(float t)
+void Level::update()
 {
     while (Game::getView().getY() >= y + TILE_DIMENSIONS)
         advanceRow();

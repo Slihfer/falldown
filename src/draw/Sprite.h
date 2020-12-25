@@ -11,9 +11,8 @@ class Sprite : public Resource<Sprite>
 public:
     const Texture& baseTexture;
     const Rectangle subArea;
-    bool mirror;
 
-    Sprite(const Texture& baseTexture, Rectangle subArea, bool mirror);
+    Sprite(const Texture& baseTexture, Rectangle subArea);
 };
 
 class TextureInfo : public Resource<TextureInfo>

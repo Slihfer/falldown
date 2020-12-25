@@ -8,6 +8,9 @@ class Game
 {
 //Members
 private:
+    float frameTime;
+    float runTime;
+
     Level level;
     View view;
     Player player;
@@ -26,7 +29,7 @@ private:
     void loadSprites();
     void loadAnimations();
 
-    void update(float t);
+    void update();
     void draw();
 
 //Class Methods
@@ -38,6 +41,8 @@ public:
     }
 
     static void run();
+    static float delta();
+    static float time();
 
     static View& getView();
     static Level& getLevel();

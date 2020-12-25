@@ -27,7 +27,7 @@ public:
     int getTopRow();
     void generate();
     void advanceRow();
-    void update(float t);
+    void update();
     void draw();
     void print();
 };

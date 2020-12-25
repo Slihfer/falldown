@@ -5,21 +5,21 @@
 #include "core/Game.h"
 #include "core/constants.h"
 
-void Player::update(float t)
+void Player::update()
 {
-    stateTime += t;
+    stateTime += Game::delta();
 
     float lastX = x;
     float lastY = y;
     float lastVelocityY = velocity.y;
 
     velocity.x = PLAYER_SPEED * (IsKeyDown(KEY_D) - IsKeyDown(KEY_A));
-    velocity.y += PLAYER_GRAVITY * t;
+    velocity.y += PLAYER_GRAVITY * Game::delta();
 
-    looksRight = velocity.x > 0 ? true : velocity.x < 0 ? false : looksRight;
+    looksLeft = velocity.x < 0 ? true : velocity.x > 0 ? false : looksLeft;
 
-    x = std::clamp(x + t * velocity.x, -PLAYER_COLLIDER.x, static_cast<float>(LEVEL_WIDTH - TILE_DIMENSIONS + PLAYER_COLLIDER.x) - 0.001f);
-    y = y + t * velocity.y;
+    x = std::clamp(x + Game::delta() * velocity.x, -PLAYER_COLLIDER.x, static_cast<float>(LEVEL_WIDTH - TILE_DIMENSIONS + PLAYER_COLLIDER.x) - 0.001f);
+    y = y + Game::delta() * velocity.y;
 
     if (x == lastX)
         velocity.x = 0;
@@ -85,28 +85,16 @@ void Player::draw()
     switch (state)
     {
     case Idle:
-        if (looksRight)
-            Game::getView().drawSprite(Animation::get("anim_PlayerIdle_R").getCurrentSprite(stateTime, true), position);
-        else
-            Game::getView().drawSprite(Animation::get("anim_PlayerIdle_L").getCurrentSprite(stateTime, true), position);
+        Game::getView().drawSprite(Animation::get("anim_PlayerIdle").getCurrentSprite(stateTime, true), position, looksLeft);
         break;
     case Walking:
-        if (looksRight)
-            Game::getView().drawSprite(Animation::get("anim_PlayerWalk_R").getCurrentSprite(stateTime, true), position);
-        else
-            Game::getView().drawSprite(Animation::get("anim_PlayerWalk_L").getCurrentSprite(stateTime, true), position);
+        Game::getView().drawSprite(Animation::get("anim_PlayerWalk").getCurrentSprite(stateTime, true), position, looksLeft);
         break;
     case Jumping:
-        if (looksRight)
-            Game::getView().drawSprite(Sprite::get("spr_PlayerJump_R"), position);
-        else
-            Game::getView().drawSprite(Sprite::get("spr_PlayerJump_L"), position);
+        Game::getView().drawSprite(Sprite::get("spr_PlayerJump"), position, looksLeft);
         break;
     case Falling:
-        if (looksRight)
-            Game::getView().drawSprite(Sprite::get("spr_PlayerFall_R"), position);
-        else
-            Game::getView().drawSprite(Sprite::get("spr_PlayerFall_L"), position);
+        Game::getView().drawSprite(Sprite::get("spr_PlayerFall"), position, looksLeft);
         break;
     }
 }

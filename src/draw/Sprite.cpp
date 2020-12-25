@@ -28,7 +28,6 @@ TextureInfo::~TextureInfo()
     UnloadTexture(texture);
 }
 
-Sprite::Sprite(const Texture& baseTexture, Rectangle subArea, bool mirror) :
+Sprite::Sprite(const Texture& baseTexture, Rectangle subArea) :
     baseTexture(baseTexture),
-    subArea(subArea),
-    mirror(mirror) {}
+    subArea(subArea) {}

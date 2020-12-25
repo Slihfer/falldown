@@ -17,3 +17,4 @@ constexpr int WINDOW_HEIGHT = LEVEL_HEIGHT * ZOOM;
 constexpr int VIEW_MAX_PLAYER_DISTANCE = LEVEL_HEIGHT * 2 / 3;
 
 constexpr int TARGET_FPS = 60;
+constexpr float MAX_FRAME_TIME = 0.1f;

@@ -22,14 +22,13 @@ public:
         struct { float x, y; };
         Vector2 position;
     };
-
     Vector2 velocity;
 
-    bool looksRight = true;
+    bool looksLeft = true;
     State state = Falling;
     float stateTime;
 
-    void update(float t);
+    void update();
     void draw();
 
     void setState(State newState);
