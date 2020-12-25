@@ -36,15 +36,23 @@ public:
 
 private:
     std::vector<Frame> frames;
+    float duration;
+
+    template <class ... TArgs>
+    void constructFrames(Frame frame, TArgs ... args)
+    {
+        frames.push_back(frame);
+        constructFrames(args ...);
+    }
+
+    void constructFrames();
 
 public:
     template <class ... TArgs>
-    Animation(Frame frame, TArgs ... args) : Animation(args ...)
+    Animation(TArgs ... args) : frames(), duration(0)
     {
-        frames.push_back(frame);
+        constructFrames(args ...);
     }
 
-    Animation() {}
-
-    Sprite& getCurrentSprite(float animTime);
+    const Sprite& getCurrentSprite(float animTime, bool loop = false) const;
 };

@@ -4,11 +4,19 @@
 
 constexpr float PLAYER_SPEED = 48;
 constexpr float PLAYER_GRAVITY = 96;
-constexpr Rectangle PLAYER_COLLIDER{ 1.0f, 2.0f, 4.0f, 6.0f };
+constexpr Rectangle PLAYER_COLLIDER{ 2.0f, 2.0f, 4.0f, 6.0f };
 
 class Player
 {
 public:
+    enum State
+    {
+        Idle,
+        Walking,
+        Jumping,
+        Falling
+    };
+
     union
     {
         struct { float x, y; };
@@ -17,6 +25,12 @@ public:
 
     Vector2 velocity;
 
+    bool looksRight = true;
+    State state = Falling;
+    float stateTime;
+
     void update(float t);
     void draw();
+
+    void setState(State newState);
 };

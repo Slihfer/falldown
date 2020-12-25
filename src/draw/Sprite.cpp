@@ -1,10 +1,20 @@
 #include "Sprite.h"
 
-Sprite& Animation::getCurrentSprite(float animTime)
+void Animation::constructFrames()
 {
+    for (const Frame& f : frames)
+        duration += f.duration;
+}
+
+//TODO make more efficient
+const Sprite& Animation::getCurrentSprite(float animTime, bool loop) const
+{
+    if (loop)
+        animTime = fmodf(animTime, duration);
+
     float acc = 0.0f;
 
-    for (Frame& f : frames)
+    for (const Frame& f : frames)
         if (animTime < (acc += f.duration))
             return f.sprite;
 
