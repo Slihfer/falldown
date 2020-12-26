@@ -54,4 +54,5 @@ public:
     }
 
     const Sprite& getCurrentSprite(float animTime, bool loop = false) const;
+    float getDuration() const;
 };

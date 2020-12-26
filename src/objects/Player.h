@@ -2,9 +2,7 @@
 
 #include <raylib.h>
 
-constexpr float PLAYER_SPEED = 48;
-constexpr float PLAYER_GRAVITY = 96;
-constexpr Rectangle PLAYER_COLLIDER{ 2.0f, 2.0f, 4.0f, 6.0f };
+#include "util/Duration.h"
 
 class Player
 {
@@ -13,9 +11,19 @@ public:
     {
         Idle,
         Walking,
-        Jumping,
-        Falling
+        Airborn,
     };
+
+private:
+    Duration jumpBuffer{ 0.1f };
+    Duration coyoteTime{ 0.1f };
+    Duration jumpBoostStartTime{ 0.05f };
+    Duration jumpBoostEndTime{ 0.35f };
+
+    Duration invulnerabilityTime{ 1 };
+
+public:
+    float health;
 
     union
     {
@@ -25,11 +33,28 @@ public:
     Vector2 velocity;
 
     bool looksLeft = true;
-    State state = Falling;
-    float stateTime;
+    State state = Airborn;
+    float stateTime = 0;
 
+public:
     void update();
     void draw();
 
     void setState(State newState);
+
+    void damage(Vector2 origin);
+
+    bool isInvulnerable();
+
+    Rectangle getCollider();
+
+public:
+    static constexpr float SPEED = 64;
+    static constexpr float GRAVITY = 256;
+    static constexpr float DRAG = 1.5f;
+    static constexpr float JUMP_SPEED = -64;
+    static constexpr float SLOW_JUMP_THRESHOLD = -36;
+    static constexpr float JUMP_HOVER_THRESHOLD = -6;
+    static constexpr float FALL_HOVER_THRESHOLD = 10;
+    static constexpr Rectangle COLLIDER{ 2.0f, 2.0f, 4.0f, 6.0f };
 };

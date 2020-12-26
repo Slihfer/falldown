@@ -21,6 +21,11 @@ const Sprite& Animation::getCurrentSprite(float animTime, bool loop) const
     return frames.back().sprite;
 }
 
+float Animation::getDuration() const
+{
+    return duration;
+}
+
 TextureInfo::TextureInfo(const char* filePath) : texture(LoadTexture(filePath)) {}
 
 TextureInfo::~TextureInfo()

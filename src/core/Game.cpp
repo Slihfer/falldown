@@ -26,14 +26,18 @@ Game::~Game()
 void Game::loadTextures()
 {
     TextureInfo::load("tex_Player", FROM_SPRITES_FOLDER("player.png"));
+    TextureInfo::load("tex_Enemy1", FROM_SPRITES_FOLDER("enemy1.png"));
+
     TextureInfo::load("tex_BaseTile", FROM_SPRITES_FOLDER("tile1.png"));
     TextureInfo::load("tex_BaseTileBG", FROM_SPRITES_FOLDER("bg_tile1.png"));
 }
 
 void Game::loadSprites()
 {
-    Sprite::load("spr_PlayerJump", TextureInfo::get("tex_Player").texture, Rectangle{ 0, 16, 8, 8 });
-    Sprite::load("spr_PlayerFall", TextureInfo::get("tex_Player").texture, Rectangle{ 8, 16, 8, 8 });
+    Sprite::load("spr_PlayerFastJump", TextureInfo::get("tex_Player").texture, Rectangle{ 0, 16, 8, 8 });
+    Sprite::load("spr_PlayerSlowJump", TextureInfo::get("tex_Player").texture, Rectangle{ 8, 16, 8, 8 });
+    Sprite::load("spr_PlayerHover", TextureInfo::get("tex_Player").texture, Rectangle{ 16, 16, 8, 8 });
+    Sprite::load("spr_PlayerFall", TextureInfo::get("tex_Player").texture, Rectangle{ 24, 16, 8, 8 });
 
     Sprite::load("spr_BaseTile", TextureInfo::get("tex_BaseTile").texture, Rectangle{ 0, 0, 8, 8 });
     Sprite::load("spr_BaseTileBG", TextureInfo::get("tex_BaseTileBG").texture, Rectangle{ 0, 0, 32, 32 });
@@ -50,6 +54,21 @@ void Game::loadAnimations()
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 0, 8, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 16, 8, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 0, 8, 8, 8 } }, 0.1f });
+
+    Animation::load("anim_Enemy1Spawn",
+        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 0, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 8, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 16, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 24, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 8, 8, 8, 8 } }, 0.1f });
+
+    Animation::load("anim_Enemy1Idle",
+        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 0, 8, 8, 8 } }, 3.5f },
+        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 8, 8, 8, 8 } }, 0.1f });
+
+    Animation::load("anim_Enemy1Walk",
+        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 0, 8, 8, 8 } }, 0.35f },
+        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 16, 8, 8, 8 } }, 0.35f });
 }
 
 void Game::update()

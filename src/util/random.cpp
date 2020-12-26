@@ -11,3 +11,8 @@ int GetRandomInt(int max)
 {
     return rand() % max;
 }
+
+bool GetRandomBool()
+{
+    return GetRandomInt(2);
+}
