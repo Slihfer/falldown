@@ -34,7 +34,7 @@ public:
 
     bool looksLeft = true;
     State state = Airborn;
-    float stateTime = 0;
+    Timepoint stateTime;
 
 public:
     void update();

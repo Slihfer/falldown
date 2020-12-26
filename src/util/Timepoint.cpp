@@ -1,4 +1,6 @@
-#include "Timepoint.h"
+#include "TImepoint.h"
+
+#include "core/Game.h"
 
 Timepoint::Timepoint(float startTime) : startTime(startTime) {}
 
@@ -10,4 +12,9 @@ void Timepoint::start()
 float Timepoint::expired()
 {
     return Game::time() - startTime;
+}
+
+float Timepoint::currentTime()
+{
+    return Game::time();
 }

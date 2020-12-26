@@ -7,7 +7,9 @@
 
 #include "constants.h"
 #include "macros.h"
+#include "draw/TextureInfo.h"
 #include "draw/Sprite.h"
+#include "draw/Animation.h"
 
 Game::Game() : frameTime(0), runTime(0)
 {
@@ -26,7 +28,7 @@ Game::~Game()
 void Game::loadTextures()
 {
     TextureInfo::load("tex_Player", FROM_SPRITES_FOLDER("player.png"));
-    TextureInfo::load("tex_Enemy1", FROM_SPRITES_FOLDER("enemy1.png"));
+    TextureInfo::load("tex_Blob", FROM_SPRITES_FOLDER("blob.png"));
 
     TextureInfo::load("tex_BaseTile", FROM_SPRITES_FOLDER("tile1.png"));
     TextureInfo::load("tex_BaseTileBG", FROM_SPRITES_FOLDER("bg_tile1.png"));
@@ -55,35 +57,52 @@ void Game::loadAnimations()
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 16, 8, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 0, 8, 8, 8 } }, 0.1f });
 
-    Animation::load("anim_Enemy1Spawn",
-        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 0, 0, 8, 8 } }, 0.1f },
-        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 8, 0, 8, 8 } }, 0.1f },
-        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 16, 0, 8, 8 } }, 0.1f },
-        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 24, 0, 8, 8 } }, 0.1f },
-        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 8, 8, 8, 8 } }, 0.1f });
+    Animation::load("anim_BlobSpawn",
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 0, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 8, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 16, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 24, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 8, 8, 8, 8 } }, 0.1f });
 
-    Animation::load("anim_Enemy1Idle",
-        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 0, 8, 8, 8 } }, 3.5f },
-        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 8, 8, 8, 8 } }, 0.1f });
+    Animation::load("anim_BlobIdle",
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 0, 8, 8, 8 } }, 3.5f },
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 24, 8, 8, 8 } }, 0.1f });
 
-    Animation::load("anim_Enemy1Walk",
-        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 0, 8, 8, 8 } }, 0.35f },
-        Animation::Frame{ { TextureInfo::get("tex_Enemy1").texture, { 16, 8, 8, 8 } }, 0.35f });
+    Animation::load("anim_BlobWalk",
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 8, 8, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 16, 8, 8, 8 } }, 0.15f },
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 8, 8, 8, 8 } }, 0.15f },
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 0, 8, 8, 8 } }, 0.15f });
+}
+
+void Game::initObjects()
+{
+    level = std::make_unique<Level>();
+    player = std::make_unique<Player>();
+    view = std::make_unique<View>();
 }
 
 void Game::update()
 {
-    level.update();
-    view.update();
-    player.update();
+    level->update();
+    view->update();
+    player->update();
+
+    for (Blob& blob : blobs)
+        blob.update();
 }
 
 void Game::draw()
 {
     BeginDrawing();
     ClearBackground(BLACK);
-    level.draw();
-    player.draw();
+    level->draw();
+
+    player->draw();
+
+    for (Blob& blob : blobs)
+        blob.draw();
+
     EndDrawing();
 }
 
@@ -94,6 +113,7 @@ void Game::run()
     game.loadTextures();
     game.loadSprites();
     game.loadAnimations();
+    game.initObjects();
 
     while (!WindowShouldClose())
     {
@@ -117,17 +137,17 @@ float Game::time()
     return instance().runTime;
 }
 
-View& Game::getView()
-{
-    return instance().view;
-}
-
 Level& Game::getLevel()
 {
-    return instance().level;
+    return *instance().level;
+}
+
+View& Game::getView()
+{
+    return *instance().view;
 }
 
 Player& Game::getPlayer()
 {
-    return instance().player;
+    return *instance().player;
 }

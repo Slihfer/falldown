@@ -2,9 +2,10 @@
 
 #include <raylib.h>
 
+#include "util/Duration.h"
 #include "util/random.h"
 
-class Enemy1
+class Blob
 {
 public:
     enum State
@@ -17,7 +18,7 @@ public:
 private:
     bool looksLeft = GetRandomBool();
     State state = Spawning;
-    float stateTime = 0;
+    Timepoint stateTime;
 
 public:
     union
@@ -28,6 +29,10 @@ public:
     Vector2 velocity;
 
 public:
+    Blob(Vector2 position);
+    Blob(float x, float y);
+
+public:
     void update();
     void draw();
 
@@ -35,7 +40,7 @@ public:
     Rectangle getCollider();
 
 public:
-    static constexpr float SPEED = 16;
+    static constexpr float SPEED = 14;
     static constexpr Rectangle COLLIDER{ 2, 5, 4, 3 };
     static constexpr float EDGE_SENSE = 1;
 };

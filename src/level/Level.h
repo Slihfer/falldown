@@ -30,6 +30,9 @@ public:
     void update();
     void draw();
     void print();
+
+public:
+    static constexpr float BLOB_SPAWN_CHANCE = 0.5f;
 };
 
 

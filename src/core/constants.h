@@ -1,5 +1,7 @@
 #pragma once
 
+//TODO move stuff
+
 constexpr int TILE_DIMENSIONS = 8;
 constexpr int HALF_TILE_DIMENSIONS = TILE_DIMENSIONS / 2;
 constexpr int ZOOM = 5;

@@ -69,6 +69,14 @@ void Level::replaceTopRow()
 
         for (int i = emptyStart; i < emptyStart + empty; ++i)
             topTiles[i] = TileType::Empty;
+
+        if (GetRandomFloat() < BLOB_SPAWN_CHANCE)
+            for (int i = 0; i < MAX_TILES_X; ++i)
+                if (topTiles[i] == TileType::Filled)
+                {
+                    Game::spawnBlob(i * TILE_DIMENSIONS, y + (MAX_TILES_Y - 1) * TILE_DIMENSIONS);
+                    break;
+                }
     }
     else
     {

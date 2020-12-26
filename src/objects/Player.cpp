@@ -4,13 +4,12 @@
 
 #include "core/Game.h"
 #include "core/constants.h"
+#include "draw/Animation.h"
 
 //TODO make time checking more general
 
 void Player::update()
 {
-    stateTime += Game::delta();
-
     float lastX = x;
     float lastY = y;
     float lastVelocityY = velocity.y;
@@ -112,10 +111,10 @@ void Player::draw()
     switch (state)
     {
     case Idle:
-        Game::getView().drawSprite(Animation::get("anim_PlayerIdle").getCurrentSprite(stateTime, true), position, looksLeft);
+        Game::getView().drawSprite(Animation::get("anim_PlayerIdle").getCurrentSprite(stateTime.expired(), true), position, looksLeft);
         break;
     case Walking:
-        Game::getView().drawSprite(Animation::get("anim_PlayerWalk").getCurrentSprite(stateTime, true), position, looksLeft);
+        Game::getView().drawSprite(Animation::get("anim_PlayerWalk").getCurrentSprite(stateTime.expired(), true), position, looksLeft);
         break;
     case Airborn:
         if (velocity.y <= SLOW_JUMP_THRESHOLD)
@@ -135,7 +134,7 @@ void Player::setState(State newState)
     if (state != newState)
     {
         state = newState;
-        stateTime = 0;
+        stateTime.start();
     }
 }
 
