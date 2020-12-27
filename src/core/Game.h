@@ -6,14 +6,28 @@
 #include "draw/View.h"
 #include "objects/Player.h"
 #include "objects/Blob.h"
+#include "objects/Button.h"
 
 class Game
 {
+//Types
+public:
+    enum State
+    {
+        None,
+        MainMenu,
+        Playing
+    };
+
 //Members
 private:
     float frameTime;
     float runTime;
+    bool allowDestruction;
+    State state;
+    bool destructionFlag;
 
+    std::vector<Button> buttons;
     std::unique_ptr<Level> level;
     std::unique_ptr<View> view;
     std::unique_ptr<Player> player;
@@ -37,6 +51,25 @@ private:
     void update();
     void draw();
 
+    template <class T>
+    void updateDestructibles(std::vector<T>& destructibles)
+    {
+        for (auto it = destructibles.begin(); it != destructibles.end();)
+        {
+            it->update();
+
+            if (destructionFlag)
+            {
+                it = destructibles.erase(it);
+                destructionFlag = false;
+            }
+            else
+            {
+                ++it;
+            }
+        }
+    }
+
 //Class Methods
 public:
     static inline Game& instance()
@@ -48,6 +81,9 @@ public:
     static void run();
     static float delta();
     static float time();
+    static void switchState(State state);
+
+    static void flagDestruction();
 
     static Level& getLevel();
     static View& getView();

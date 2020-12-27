@@ -3,6 +3,7 @@
 #include <raylib.h>
 
 #include "util/Duration.h"
+#include "core/constants.h"
 
 class Player
 {
@@ -20,15 +21,16 @@ private:
     Duration jumpBoostStartTime{ 0.05f };
     Duration jumpBoostEndTime{ 0.35f };
 
+    Duration hitStunTime{ 0.5f };
     Duration invulnerabilityTime{ 1 };
 
 public:
-    float health;
+    int health = 3;
 
     union
     {
         struct { float x, y; };
-        Vector2 position;
+        Vector2 position{ (LEVEL_WIDTH - TILE_DIMENSIONS) / 2, 0 };
     };
     Vector2 velocity;
 
@@ -42,7 +44,7 @@ public:
 
     void setState(State newState);
 
-    void damage(Vector2 origin);
+    void damage(Vector2 origin, float knockback);
 
     bool isInvulnerable();
 

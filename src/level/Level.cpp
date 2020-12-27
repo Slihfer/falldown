@@ -40,12 +40,19 @@ std::vector<TileType>& Level::getTilesInRow(int row)
 
 bool Level::collides(float worldX, float worldY)
 {
-    return getTiles()[(topRow + static_cast<int>(worldY - y) / TILE_DIMENSIONS) % MAX_TILES_Y][worldX / TILE_DIMENSIONS] == TileType::Filled;
+    return !(worldY < y || worldY >= y + MAX_TILES_Y * TILE_DIMENSIONS) &&
+        ((worldX < 0) || (worldX >= MAX_TILES_X * TILE_DIMENSIONS) ||
+        (getTile(worldToLevelCoords(worldX, worldY)) == TileType::Filled));
 }
 
-TileType& Level::getTile(int gridX, int gridY)
+TileType& Level::getTile(int levelX, int levelY)
 {
-    return getTiles()[gridY][gridX];
+    return getTiles()[levelY][levelX];
+}
+
+TileType& Level::getTile(Vector2Int gridCoords)
+{
+    return getTile(gridCoords.x, gridCoords.y);
 }
 
 int Level::getTopRow()
@@ -98,6 +105,16 @@ void Level::advanceRow()
     y += TILE_DIMENSIONS;
 }
 
+Vector2 Level::levelToWorldCoords(int levelX, int levelY)
+{
+    return { static_cast<float>(levelX * TILE_DIMENSIONS), y + ((MAX_TILES_Y + levelY - topRow) % MAX_TILES_Y) * TILE_DIMENSIONS };
+}
+
+Vector2Int Level::worldToLevelCoords(float worldX, float worldY)
+{
+    return { static_cast<int>(worldX / TILE_DIMENSIONS), (topRow + static_cast<int>(worldY - y) / TILE_DIMENSIONS) % MAX_TILES_Y };
+}
+
 void Level::update()
 {
     while (Game::getView().getY() >= y + TILE_DIMENSIONS)
@@ -127,4 +144,9 @@ void Level::print()
 
         std::cout << "\n";
     }
+}
+
+bool Level::isAbove(float worldY)
+{
+    return worldY < y;
 }

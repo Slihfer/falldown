@@ -11,7 +11,7 @@
 #include "draw/Sprite.h"
 #include "draw/Animation.h"
 
-Game::Game() : frameTime(0), runTime(0)
+Game::Game() : frameTime(0), runTime(0), state(None), allowDestruction(false), destructionFlag(false)
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "falldown");
     SetTargetFPS(TARGET_FPS);
@@ -32,10 +32,13 @@ void Game::loadTextures()
 
     TextureInfo::load("tex_BaseTile", FROM_SPRITES_FOLDER("tile1.png"));
     TextureInfo::load("tex_BaseTileBG", FROM_SPRITES_FOLDER("bg_tile1.png"));
+
+    TextureInfo::load("tex_Button", FROM_SPRITES_FOLDER("button.png"));
 }
 
 void Game::loadSprites()
 {
+    Sprite::load("spr_PlayerLife", TextureInfo::get("tex_Player").texture, Rectangle{ 0, 0, 8, 8 });
     Sprite::load("spr_PlayerFastJump", TextureInfo::get("tex_Player").texture, Rectangle{ 0, 16, 8, 8 });
     Sprite::load("spr_PlayerSlowJump", TextureInfo::get("tex_Player").texture, Rectangle{ 8, 16, 8, 8 });
     Sprite::load("spr_PlayerHover", TextureInfo::get("tex_Player").texture, Rectangle{ 16, 16, 8, 8 });
@@ -43,6 +46,20 @@ void Game::loadSprites()
 
     Sprite::load("spr_BaseTile", TextureInfo::get("tex_BaseTile").texture, Rectangle{ 0, 0, 8, 8 });
     Sprite::load("spr_BaseTileBG", TextureInfo::get("tex_BaseTileBG").texture, Rectangle{ 0, 0, 32, 32 });
+
+    Sprite::load("spr_ButtonTopLeft", TextureInfo::get("tex_Button").texture, Rectangle{ 0, 0, 8, 8 });
+    Sprite::load("spr_ButtonTop", TextureInfo::get("tex_Button").texture, Rectangle{ 8, 0, 8, 8 });
+    Sprite::load("spr_ButtonLeft", TextureInfo::get("tex_Button").texture, Rectangle{ 0, 8, 8, 8 });
+    Sprite::load("spr_ButtonCenter", TextureInfo::get("tex_Button").texture, Rectangle{ 8, 8, 8, 8 });
+    Sprite::load("spr_ButtonBottomLeft", TextureInfo::get("tex_Button").texture, Rectangle{ 0, 16, 8, 8 });
+    Sprite::load("spr_ButtonBottom", TextureInfo::get("tex_Button").texture, Rectangle{ 8, 16, 8, 8 });
+
+    Sprite::load("spr_ButtonTopLeftSelected", TextureInfo::get("tex_Button").texture, Rectangle{ 16, 0, 8, 8 });
+    Sprite::load("spr_ButtonTopSelected", TextureInfo::get("tex_Button").texture, Rectangle{ 24, 0, 8, 8 });
+    Sprite::load("spr_ButtonLeftSelected", TextureInfo::get("tex_Button").texture, Rectangle{ 16, 8, 8, 8 });
+    Sprite::load("spr_ButtonCenterSelected", TextureInfo::get("tex_Button").texture, Rectangle{ 24, 8, 8, 8 });
+    Sprite::load("spr_ButtonBottomLeftSelected", TextureInfo::get("tex_Button").texture, Rectangle{ 16, 16, 8, 8 });
+    Sprite::load("spr_ButtonBottomSelected", TextureInfo::get("tex_Button").texture, Rectangle{ 24, 16, 8, 8 });
 }
 
 void Game::loadAnimations()
@@ -61,35 +78,36 @@ void Game::loadAnimations()
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 0, 0, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 8, 0, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 16, 0, 8, 8 } }, 0.1f },
-        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 24, 0, 8, 8 } }, 0.1f },
-        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 8, 8, 8, 8 } }, 0.1f });
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 24, 0, 8, 8 } }, 0.1f });
 
     Animation::load("anim_BlobIdle",
-        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 0, 8, 8, 8 } }, 3.5f },
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 24, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 0, 8, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 24, 8, 8, 8 } }, 0.1f });
 
     Animation::load("anim_BlobWalk",
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 0, 8, 8, 8 } }, 0.15f },
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 8, 8, 8, 8 } }, 0.05f },
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 16, 8, 8, 8 } }, 0.15f },
-        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 8, 8, 8, 8 } }, 0.15f },
-        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 0, 8, 8, 8 } }, 0.15f });
+        Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 8, 8, 8, 8 } }, 0.15f });
 }
 
 void Game::initObjects()
 {
-    level = std::make_unique<Level>();
-    player = std::make_unique<Player>();
-    view = std::make_unique<View>();
+    switchState(MainMenu);
 }
 
 void Game::update()
 {
+    allowDestruction = true;
+
     level->update();
     view->update();
     player->update();
 
-    for (Blob& blob : blobs)
-        blob.update();
+    updateDestructibles(blobs);
+
+    allowDestruction = false;
 }
 
 void Game::draw()
@@ -135,6 +153,35 @@ float Game::delta()
 float Game::time()
 {
     return instance().runTime;
+}
+
+void Game::switchState(State state)
+{
+    Game& game = instance();
+
+    switch (state)
+    {
+    case MainMenu:
+        game.buttons.emplace_back(
+            Rectangle{ TILES_X / 2, TILES_Y / 2, TILES_X / 2, TILES_Y / 10 },
+            "Play",
+            5,
+            [] { Game::switchState(Playing); },
+            true
+        );
+        break;
+    case Playing:
+        game.level = std::make_unique<Level>();
+        game.player = std::make_unique<Player>();
+        game.view = std::make_unique<View>();
+        break;
+    }
+}
+
+void Game::flagDestruction()
+{
+    if (instance().allowDestruction)
+        instance().destructionFlag = true;
 }
 
 Level& Game::getLevel()

@@ -2,9 +2,12 @@
 
 #include <algorithm>
 
+#include <raymath.h>
+
 #include "core/Game.h"
 #include "core/constants.h"
 #include "draw/Animation.h"
+#include "draw/drawText.h"
 
 //TODO make time checking more general
 
@@ -14,19 +17,70 @@ void Player::update()
     float lastY = y;
     float lastVelocityY = velocity.y;
 
-    velocity.x = SPEED * (IsKeyDown(KEY_D) - IsKeyDown(KEY_A));
     velocity.y += GRAVITY * Game::delta();
     velocity.y *= 1.0f - DRAG * Game::delta();
 
+    if (hitStunTime.isExpired())
+        velocity.x = SPEED * (IsKeyDown(KEY_D) - IsKeyDown(KEY_A));
+
+    if (IsKeyReleased(KEY_K))
+        jumpBoostEndTime.end();
+
+    if (velocity.y != 0 && IsKeyPressed(KEY_K))
+        jumpBuffer.start();
+
+    if (hitStunTime.isExpired())
+    {
+        if (((velocity.y == 0 && lastVelocityY >= 0) ||
+            coyoteTime.isOngoing()) &&
+            (IsKeyPressed(KEY_K) ||
+                (jumpBuffer.isOngoing()) && IsKeyDown(KEY_K)))
+        {
+            velocity.y = JUMP_SPEED;
+            coyoteTime.end();
+            jumpBuffer.end();
+            jumpBoostStartTime.start();
+            jumpBoostEndTime.start();
+        }
+        else if (velocity.y < 0 && IsKeyDown(KEY_K) && jumpBoostStartTime.isExpired() && jumpBoostEndTime.isOngoing())
+        {
+            velocity.y = JUMP_SPEED;
+        }
+    }
+
     looksLeft = velocity.x < 0 ? true : velocity.x > 0 ? false : looksLeft;
 
-    x = std::clamp(x + Game::delta() * velocity.x, -COLLIDER.x, static_cast<float>(LEVEL_WIDTH - TILE_DIMENSIONS + COLLIDER.x) - 0.001f);
-    y = y + Game::delta() * velocity.y;
-
-    if (x == lastX)
-        velocity.x = 0;
+    position = Vector2Add(position, Vector2Scale(velocity, Game::delta()));
 
     Vector2 feetCenter = { x + HALF_TILE_DIMENSIONS, y + TILE_DIMENSIONS };
+
+    if (velocity.x != 0)
+    {
+        if (velocity.x > 0)
+        {
+            if
+            (
+                Game::getLevel().collides(feetCenter.x + COLLIDER.width / 2, feetCenter.y - COLLIDER.height) ||
+                (y < TILE_DIMENSIONS - COLLIDER.y && Game::getLevel().collides(feetCenter.x + COLLIDER.width / 2, feetCenter.y))
+            )
+            {
+                x = floor((x + COLLIDER.x + COLLIDER.width) / TILE_DIMENSIONS) * TILE_DIMENSIONS - COLLIDER.x - COLLIDER.width;
+                velocity.x = 0;
+            }
+        }
+        else
+        {
+            if
+            (
+                Game::getLevel().collides(feetCenter.x - COLLIDER.width / 2, feetCenter.y - COLLIDER.height) ||
+                (y < TILE_DIMENSIONS - COLLIDER.y && Game::getLevel().collides(feetCenter.x - COLLIDER.width / 2, feetCenter.y))
+            )
+            {
+                x = ceil((x + COLLIDER.x) / TILE_DIMENSIONS) * TILE_DIMENSIONS - COLLIDER.x;
+                velocity.x = 0;
+            }
+        }
+    }
 
     if
     (
@@ -44,56 +98,6 @@ void Player::update()
         velocity.y = 0;
         coyoteTime.start();
     }
-    else if (velocity.x != 0)
-    {
-        if (velocity.x > 0)
-        {
-            if
-            (
-                Game::getLevel().collides(feetCenter.x + COLLIDER.width / 2, feetCenter.y) ||
-                Game::getLevel().collides(feetCenter.x + COLLIDER.width / 2, feetCenter.y - COLLIDER.height)
-            )
-            {
-                x = floor((x + COLLIDER.x + COLLIDER.width) / TILE_DIMENSIONS) * TILE_DIMENSIONS - COLLIDER.x - COLLIDER.width;
-                velocity.x = 0;
-            }
-        }
-        else
-        {
-            if
-            (
-                Game::getLevel().collides(feetCenter.x - COLLIDER.width / 2, feetCenter.y) ||
-                Game::getLevel().collides(feetCenter.x - COLLIDER.width / 2, feetCenter.y - COLLIDER.height)
-            )
-            {
-                x = ceil((x + COLLIDER.x) / TILE_DIMENSIONS) * TILE_DIMENSIONS - COLLIDER.x;
-                velocity.x = 0;
-            }
-        }
-    }
-
-    if (IsKeyReleased(KEY_K))
-        jumpBoostEndTime.end();
-
-    if (velocity.y != 0 && IsKeyPressed(KEY_K))
-        jumpBuffer.start();
-
-    if (((velocity.y == 0 && lastVelocityY >= 0) ||
-        coyoteTime.isRunning()) &&
-        (IsKeyPressed(KEY_K) ||
-        (jumpBuffer.isRunning()) && IsKeyDown(KEY_K)))
-    {
-        velocity.y = JUMP_SPEED;
-        coyoteTime.end();
-        jumpBuffer.end();
-        jumpBoostStartTime.start();
-        jumpBoostEndTime.start();
-    }
-    else if (velocity.y < 0 && IsKeyDown(KEY_K) && jumpBoostStartTime.isExpired() && jumpBoostEndTime.isRunning())
-    {
-        velocity.y = JUMP_SPEED;
-    }
-
 
     if (velocity.y == 0 && lastVelocityY >= 0)
         if (velocity.x == 0)
@@ -108,13 +112,16 @@ void Player::update()
 
 void Player::draw()
 {
+    for (int i = 0; i < health; ++i)
+        Game::getView().drawSpriteScreen(Sprite::get("spr_PlayerLife"), i * TILE_DIMENSIONS, 0);
+
     switch (state)
     {
     case Idle:
-        Game::getView().drawSprite(Animation::get("anim_PlayerIdle").getCurrentSprite(stateTime.expired(), true), position, looksLeft);
+        Game::getView().drawSprite(Animation::get("anim_PlayerIdle").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
         break;
     case Walking:
-        Game::getView().drawSprite(Animation::get("anim_PlayerWalk").getCurrentSprite(stateTime.expired(), true), position, looksLeft);
+        Game::getView().drawSprite(Animation::get("anim_PlayerWalk").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
         break;
     case Airborn:
         if (velocity.y <= SLOW_JUMP_THRESHOLD)
@@ -138,15 +145,21 @@ void Player::setState(State newState)
     }
 }
 
-void Player::damage(Vector2 origin)
+void Player::damage(Vector2 origin, float knockback)
 {
-    --health;
-    invulnerabilityTime.start();
+    if (!isInvulnerable())
+    {
+        --health;
+        invulnerabilityTime.start();
+        hitStunTime.start();
+
+        velocity = Vector2Scale({ Vector2Normalize(Vector2Subtract(position, origin)).x, -1.0f }, knockback);
+    }
 }
 
 bool Player::isInvulnerable()
 {
-    return invulnerabilityTime.isRunning();
+    return invulnerabilityTime.isOngoing();
 }
 
 Rectangle Player::getCollider()

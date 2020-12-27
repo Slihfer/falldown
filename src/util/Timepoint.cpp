@@ -9,7 +9,7 @@ void Timepoint::start()
     startTime = Game::time();
 }
 
-float Timepoint::expired()
+float Timepoint::elapsed()
 {
     return Game::time() - startTime;
 }

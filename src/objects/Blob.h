@@ -35,6 +35,7 @@ public:
 public:
     void update();
     void draw();
+    void destroy();
 
     void setState(State newState);
     Rectangle getCollider();

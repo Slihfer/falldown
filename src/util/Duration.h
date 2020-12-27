@@ -17,7 +17,7 @@ public:
     bool startIfExpired();
     void end();
 
-    bool isRunning();
+    bool isOngoing();
     bool isExpired();
     float remaining();
 };

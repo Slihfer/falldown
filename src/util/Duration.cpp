@@ -30,17 +30,17 @@ void Duration::end()
     startTime = -std::numeric_limits<float>::infinity();
 }
 
-bool Duration::isRunning()
+bool Duration::isOngoing()
 {
-    return expired() < duration;
+    return elapsed() < duration;
 }
 
 bool Duration::isExpired()
 {
-    return !isRunning();
+    return !isOngoing();
 }
 
 float Duration::remaining()
 {
-    return std::max(0.0f, duration - expired());
+    return std::max(0.0f, duration - elapsed());
 }
