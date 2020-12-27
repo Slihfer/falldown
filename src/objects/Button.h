@@ -25,4 +25,4 @@ public:
 public:
     void update();
     void draw();
-}
+};

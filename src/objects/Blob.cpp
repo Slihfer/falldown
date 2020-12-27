@@ -3,6 +3,7 @@
 #include "core/Game.h"
 #include "core/constants.h"
 #include "draw/Animation.h"
+#include "draw/draw.h"
 
 Blob::Blob(Vector2 position) : Blob(position.x, position.y) {}
 
@@ -62,13 +63,13 @@ void Blob::draw()
     switch (state)
     {
     case Spawning:
-        Game::getView().drawSprite(Animation::get("anim_BlobSpawn").getCurrentSprite(stateTime.elapsed()), position, looksLeft);
+        DrawSpriteWorld(Animation::get("anim_BlobSpawn").getCurrentSprite(stateTime.elapsed()), position, looksLeft);
         break;
     case Idle:
-        Game::getView().drawSprite(Animation::get("anim_BlobIdle").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
+        DrawSpriteWorld(Animation::get("anim_BlobIdle").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
         break;
     case Walking:
-        Game::getView().drawSprite(Animation::get("anim_BlobWalk").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
+        DrawSpriteWorld(Animation::get("anim_BlobWalk").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
         break;
     }
 }

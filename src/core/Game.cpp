@@ -101,11 +101,30 @@ void Game::update()
 {
     allowDestruction = true;
 
-    level->update();
-    view->update();
-    player->update();
+    switch (state)
+    {
+    case MainMenu:
+        if (IsKeyPressed(KEY_W))
+        {
+            buttons[selectedButton].selected = false;
+            buttons[selectedButton = (selectedButton + buttons.size() - 1) % buttons.size()].selected = true;
+        }
+        else if (IsKeyPressed(KEY_S))
+        {
+            buttons[selectedButton].selected = false;
+            buttons[selectedButton = (selectedButton + 1) % buttons.size()].selected = true;
+        }
 
-    updateDestructibles(blobs);
+        for (Button& button : buttons)
+            button.update();
+        break;
+    case Playing:
+        level->update();
+        view->update();
+        player->update();
+        updateDestructibles(blobs);
+        break;
+    }
 
     allowDestruction = false;
 }
@@ -114,12 +133,20 @@ void Game::draw()
 {
     BeginDrawing();
     ClearBackground(BLACK);
-    level->draw();
 
-    player->draw();
-
-    for (Blob& blob : blobs)
-        blob.draw();
+    switch (state)
+    {
+    case MainMenu:
+        for (Button& button : buttons)
+            button.draw();
+        break;
+    case Playing:
+        level->draw();
+        player->draw();
+        for (Blob& blob : blobs)
+            blob.draw();
+        break;
+    }
 
     EndDrawing();
 }
@@ -155,19 +182,27 @@ float Game::time()
     return instance().runTime;
 }
 
-void Game::switchState(State state)
+void Game::switchState(State newState)
 {
     Game& game = instance();
 
-    switch (state)
+    switch (newState)
     {
     case MainMenu:
+        game.selectedButton = 0;
         game.buttons.emplace_back(
-            Rectangle{ TILES_X / 2, TILES_Y / 2, TILES_X / 2, TILES_Y / 10 },
+            Rectangle{ TILES_X / 2, TILES_Y * 0.33f, TILES_X / 2, TILES_Y / 10 },
             "Play",
             5,
             [] { Game::switchState(Playing); },
             true
+        );
+        game.buttons.emplace_back(
+            Rectangle{ TILES_X / 2, TILES_Y * 0.67f, TILES_X / 2, TILES_Y / 10 },
+            "Options",
+            5,
+            [] { Game::switchState(Playing); },
+            false
         );
         break;
     case Playing:
@@ -176,6 +211,8 @@ void Game::switchState(State state)
         game.view = std::make_unique<View>();
         break;
     }
+
+    game.state = newState;
 }
 
 void Game::flagDestruction()

@@ -7,7 +7,7 @@
 #include "core/Game.h"
 #include "core/constants.h"
 #include "draw/Animation.h"
-#include "draw/drawText.h"
+#include "draw/draw.h"
 
 //TODO make time checking more general
 
@@ -113,25 +113,25 @@ void Player::update()
 void Player::draw()
 {
     for (int i = 0; i < health; ++i)
-        Game::getView().drawSpriteScreen(Sprite::get("spr_PlayerLife"), i * TILE_DIMENSIONS, 0);
+        DrawSpriteScreen(Sprite::get("spr_PlayerLife"), i * TILE_DIMENSIONS, 0);
 
     switch (state)
     {
     case Idle:
-        Game::getView().drawSprite(Animation::get("anim_PlayerIdle").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
+        DrawSpriteWorld(Animation::get("anim_PlayerIdle").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
         break;
     case Walking:
-        Game::getView().drawSprite(Animation::get("anim_PlayerWalk").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
+        DrawSpriteWorld(Animation::get("anim_PlayerWalk").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
         break;
     case Airborn:
         if (velocity.y <= SLOW_JUMP_THRESHOLD)
-            Game::getView().drawSprite(Sprite::get("spr_PlayerFastJump"), position, looksLeft);
+            DrawSpriteWorld(Sprite::get("spr_PlayerFastJump"), position, looksLeft);
         else if (velocity.y <= JUMP_HOVER_THRESHOLD) //velocity.y < PLAYER_FALL_HOVER_THRESHOLD && velocity.y > PLAYER_JUMP_HOVER_THRESHOLD)
-            Game::getView().drawSprite(Sprite::get("spr_PlayerSlowJump"), position, looksLeft);
+            DrawSpriteWorld(Sprite::get("spr_PlayerSlowJump"), position, looksLeft);
         else if (velocity.y <= FALL_HOVER_THRESHOLD)
-            Game::getView().drawSprite(Sprite::get("spr_PlayerHover"), position, looksLeft);
+            DrawSpriteWorld(Sprite::get("spr_PlayerHover"), position, looksLeft);
         else
-            Game::getView().drawSprite(Sprite::get("spr_PlayerFall"), position, looksLeft);
+            DrawSpriteWorld(Sprite::get("spr_PlayerFall"), position, looksLeft);
         break;
     }
 }

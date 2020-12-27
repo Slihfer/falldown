@@ -26,6 +26,7 @@ private:
     bool allowDestruction;
     State state;
     bool destructionFlag;
+    int selectedButton;
 
     std::vector<Button> buttons;
     std::unique_ptr<Level> level;
@@ -81,7 +82,7 @@ public:
     static void run();
     static float delta();
     static float time();
-    static void switchState(State state);
+    static void switchState(State newState);
 
     static void flagDestruction();
 

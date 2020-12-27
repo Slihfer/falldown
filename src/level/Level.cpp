@@ -8,6 +8,7 @@
 #include "util/random.h"
 #include "core/Game.h"
 #include "draw/View.h"
+#include "draw/draw.h"
 
 Level::Level() : tiles(), y(-MAX_TILES_Y * TILE_DIMENSIONS), topRow(0), nextGroundRow(TILES_Y - 1)
 {
@@ -123,16 +124,14 @@ void Level::update()
 
 void Level::draw()
 {
-    View& view = Game::getView();
-
     for (int i = 0; i < MAX_TILES_X / 4; ++i)
         for (int j = 0; j < MAX_TILES_Y / 4 + 1; ++j)
-            view.drawSpriteParallax(Sprite::get("spr_BaseTileBG"), i * TILE_DIMENSIONS * 8, j * TILE_DIMENSIONS * 8 + floor(y / TILE_DIMENSIONS / 8) * TILE_DIMENSIONS * 8, 0.5f);
+            DrawSpriteParallax(Sprite::get("spr_BaseTileBG"), i * TILE_DIMENSIONS * 8, j * TILE_DIMENSIONS * 8 + floor(y / TILE_DIMENSIONS / 8) * TILE_DIMENSIONS * 8, 0.5f);
 
     for (int i = 0; i < MAX_TILES_X; ++i)
         for (int j = 0; j < MAX_TILES_Y; ++j)
             if (getTile(i, (topRow + j) % MAX_TILES_Y) == TileType::Filled)
-                view.drawSprite(Sprite::get("spr_BaseTile"), i * TILE_DIMENSIONS, j * TILE_DIMENSIONS + y);
+                DrawSpriteWorld(Sprite::get("spr_BaseTile"), i * TILE_DIMENSIONS, j * TILE_DIMENSIONS + y);
 }
 
 void Level::print()
