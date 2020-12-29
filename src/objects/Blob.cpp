@@ -4,12 +4,13 @@
 #include "core/constants.h"
 #include "draw/Animation.h"
 #include "draw/draw.h"
+#include "util/collision.h"
 
 Blob::Blob(Vector2 position) : Blob(position.x, position.y) {}
 
 Blob::Blob(float x, float y) :
     looksLeft(GetRandomBool()),
-    state(Spawning),
+    state(Spawn),
     stateTime(),
     position{ x, y },
     velocity{} {}
@@ -21,12 +22,12 @@ void Blob::update()
 
     switch (state)
     {
-    case Spawning:
+    case Spawn:
         if (stateTime.elapsed() > Animation::get("anim_BlobSpawn").getDuration())
-            setState(Walking);
+            setState(Walk);
 
         return;
-    case Walking:
+    case Walk:
         if (!Game::getLevel().collides(x + COLLIDER.x + (looksLeft ? -EDGE_SENSE : COLLIDER.width + EDGE_SENSE), y + TILE_DIMENSIONS) ||
             Game::getLevel().collides(x + COLLIDER.x + (looksLeft ? -EDGE_SENSE : COLLIDER.width + EDGE_SENSE), y + COLLIDER.y))
         {
@@ -35,7 +36,7 @@ void Blob::update()
         }
         else
         {
-            velocity.x = looksLeft ? -SPEED : SPEED;
+            velocity.x = looksLeft ? -ACCELERATION : ACCELERATION;
         }
 
         break;
@@ -43,7 +44,7 @@ void Blob::update()
     case Idle:
         if (stateTime.elapsed() > Animation::get("anim_BlobIdle").getDuration())
         {
-            setState(Walking);
+            setState(Walk);
             looksLeft = !looksLeft;
         }
 
@@ -62,13 +63,13 @@ void Blob::draw()
 {
     switch (state)
     {
-    case Spawning:
+    case Spawn:
         DrawSpriteWorld(Animation::get("anim_BlobSpawn").getCurrentSprite(stateTime.elapsed()), position, looksLeft);
         break;
     case Idle:
         DrawSpriteWorld(Animation::get("anim_BlobIdle").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
         break;
-    case Walking:
+    case Walk:
         DrawSpriteWorld(Animation::get("anim_BlobWalk").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
         break;
     }
@@ -90,5 +91,5 @@ void Blob::setState(State newState)
 
 Rectangle Blob::getCollider()
 {
-    return { COLLIDER.x + x, COLLIDER.y + y, COLLIDER.width, COLLIDER.height };
+    return AssembleCollider(position, COLLIDER);
 }

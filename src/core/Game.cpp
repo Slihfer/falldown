@@ -1,7 +1,7 @@
 #include "Game.h"
 
 #include <chrono>
-#include <stdlib.h>
+#include <iostream>
 
 #include <raylib.h>
 
@@ -29,6 +29,7 @@ void Game::loadTextures()
 {
     TextureInfo::load("tex_Player", FROM_SPRITES_FOLDER("player.png"));
     TextureInfo::load("tex_Blob", FROM_SPRITES_FOLDER("blob.png"));
+    TextureInfo::load("tex_Powerup", FROM_SPRITES_FOLDER("powerup1.png"));
 
     TextureInfo::load("tex_BaseTile", FROM_SPRITES_FOLDER("tile1.png"));
     TextureInfo::load("tex_BaseTileBG", FROM_SPRITES_FOLDER("bg_tile1.png"));
@@ -64,6 +65,7 @@ void Game::loadSprites()
 
 void Game::loadAnimations()
 {
+    //Player
     Animation::load("anim_PlayerIdle",
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 0, 0, 8, 8 } }, 5.0f },
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 8, 0, 8, 8 } }, 0.1f });
@@ -74,6 +76,8 @@ void Game::loadAnimations()
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 16, 8, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 0, 8, 8, 8 } }, 0.1f });
 
+
+    //Blob
     Animation::load("anim_BlobSpawn",
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 0, 0, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 8, 0, 8, 8 } }, 0.1f },
@@ -90,6 +94,29 @@ void Game::loadAnimations()
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 8, 8, 8, 8 } }, 0.05f },
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 16, 8, 8, 8 } }, 0.15f },
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 8, 8, 8, 8 } }, 0.15f });
+
+
+    //Powerup
+    Animation::load("anim_PowerupSpawn",
+        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 16, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 0, 8, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 8, 8, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 16, 8, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 0, 8, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 8, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 24, 8, 8, 8 } }, 0.2f },
+        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 8, 0, 8, 8 } }, 0.1f });
+
+    Animation::load("anim_PowerupIdle",
+        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 0, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 16, 0, 8, 8 } }, 0.3f },
+        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 0, 0, 8, 8 } }, 0.2f },
+        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 8, 0, 8, 8 } }, 0.3f });
+
+    Animation::load("anim_PowerupDissipate",
+        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 0, 16, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 8, 16, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 16, 16, 8, 8 } }, 0.05f });
 }
 
 void Game::initObjects()
@@ -123,6 +150,7 @@ void Game::update()
         view->update();
         player->update();
         updateDestructibles(blobs);
+        updateDestructibles(powerups);
         break;
     }
 
@@ -143,8 +171,8 @@ void Game::draw()
     case Playing:
         level->draw();
         player->draw();
-        for (Blob& blob : blobs)
-            blob.draw();
+        for (Blob& blob : blobs) blob.draw();
+        for (Powerup& powerup : powerups) powerup.draw();
         break;
     }
 

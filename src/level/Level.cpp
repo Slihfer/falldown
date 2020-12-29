@@ -1,6 +1,8 @@
 #include "Level.h"
 
 #include <iostream>
+#include <numeric>
+#include <limits>
 
 #include <raylib.h>
 
@@ -9,6 +11,8 @@
 #include "core/Game.h"
 #include "draw/View.h"
 #include "draw/draw.h"
+#include "util/collision.h"
+#include "util/rectangle.h"
 
 Level::Level() : tiles(), y(-MAX_TILES_Y * TILE_DIMENSIONS), topRow(0), nextGroundRow(TILES_Y - 1)
 {
@@ -29,23 +33,6 @@ Level::Level() : tiles(), y(-MAX_TILES_Y * TILE_DIMENSIONS), topRow(0), nextGrou
     generate();
 }
 
-std::vector<std::vector<TileType>>& Level::getTiles()
-{
-    return tiles;
-}
-
-std::vector<TileType>& Level::getTilesInRow(int row)
-{
-    return getTiles()[row];
-}
-
-bool Level::collides(float worldX, float worldY)
-{
-    return !(worldY < y || worldY >= y + MAX_TILES_Y * TILE_DIMENSIONS) &&
-        ((worldX < 0) || (worldX >= MAX_TILES_X * TILE_DIMENSIONS) ||
-        (getTile(worldToLevelCoords(worldX, worldY)) == TileType::Filled));
-}
-
 TileType& Level::getTile(int levelX, int levelY)
 {
     return getTiles()[levelY][levelX];
@@ -56,40 +43,68 @@ TileType& Level::getTile(Vector2Int gridCoords)
     return getTile(gridCoords.x, gridCoords.y);
 }
 
+std::vector<TileType>& Level::getTilesInRow(int row)
+{
+    return getTiles()[row];
+}
+
+std::vector<std::vector<TileType>>& Level::getTiles()
+{
+    return tiles;
+}
+
 int Level::getTopRow()
 {
     return topRow;
 }
 
-void Level::replaceTopRow()
+void Level::replaceBottomRow()
 {
-    std::vector<TileType>& topTiles = getTilesInRow(topRow);
+    int bottomRow = (topRow + MAX_TILES_Y - 1) % MAX_TILES_Y;
+    std::vector<TileType>& bottomTiles = getTilesInRow(bottomRow);
 
-    if (topRow == nextGroundRow)
+    if (bottomRow == nextGroundRow)
     {
         for (int i = 0; i < MAX_TILES_X; ++i)
-            topTiles[i] = TileType::Filled;
+            bottomTiles[i] = TileType::Filled;
 
-        nextGroundRow = (topRow + GetRandomInt(GROUND_ROW_MIN_DISTANCE, GROUND_ROW_MAX_DISTANCE)) % MAX_TILES_Y;
+        nextGroundRow = (bottomRow + GetRandomInt(GROUND_ROW_MIN_DISTANCE, GROUND_ROW_MAX_DISTANCE)) % MAX_TILES_Y;
 
         int empty = GetRandomInt(MAX_TILES_X - GROUND_ROW_MIN_TILES) + 1;
         int emptyStart = GetRandomInt(MAX_TILES_X - empty);
 
         for (int i = emptyStart; i < emptyStart + empty; ++i)
-            topTiles[i] = TileType::Empty;
+            bottomTiles[i] = TileType::Empty;
 
-        if (GetRandomFloat() < BLOB_SPAWN_CHANCE)
-            for (int i = 0; i < MAX_TILES_X; ++i)
-                if (topTiles[i] == TileType::Filled)
+        if (float r = GetRandomFloat(); r < BLOB_SPAWN_CHANCE)
+        {
+            r = floor(r * (MAX_TILES_X - empty) / BLOB_SPAWN_CHANCE);
+
+            for (int i = 0; i < emptyStart; ++i)
+                if (r == i)
                 {
-                    Game::spawnBlob(i * TILE_DIMENSIONS, y + (MAX_TILES_Y - 1) * TILE_DIMENSIONS);
-                    break;
+                    Game::spawnBlob(levelToWorldCoords(i, bottomRow) - Vector2{ 0, TILE_DIMENSIONS });
+                    goto endBlobSpawn;
                 }
+
+            for (int i = emptyStart + empty; i < MAX_TILES_X; ++i)
+                if (r == i - empty)
+                {
+                    Game::spawnBlob(levelToWorldCoords(i, bottomRow) - Vector2{ 0, TILE_DIMENSIONS });
+                    goto endBlobSpawn;
+                }
+        }
+
+    endBlobSpawn:
+        /*if (empty == 1)
+            Game::spawnPowerup(levelToWorldCoords(emptyStart, bottomRow));*/
+
+        Game::spawnPowerup(levelToWorldCoords(TILES_X / 2, bottomRow) - Vector2{ 0, TILE_DIMENSIONS * 3 });
     }
     else
     {
         for (int i = 0; i < MAX_TILES_X; ++i)
-            topTiles[i] = TileType::Empty;
+            bottomTiles[i] = TileType::Empty;
     }
 }
 
@@ -101,9 +116,111 @@ void Level::generate()
 
 void Level::advanceRow()
 {
-    replaceTopRow();
-    topRow = (topRow + 1) % MAX_TILES_Y;
     y += TILE_DIMENSIONS;
+    topRow = (topRow + 1) % MAX_TILES_Y;
+    replaceBottomRow();
+}
+
+bool Level::collides(float worldX, float worldY)
+{
+    return !(worldY < y || worldY >= y + MAX_TILES_Y * TILE_DIMENSIONS) &&
+        ((worldX < 0) || (worldX >= MAX_TILES_X * TILE_DIMENSIONS) ||
+        (getTile(worldToLevelCoords(worldX, worldY)) == TileType::Filled));
+}
+
+bool Level::collides(Rectangle collider)
+{
+    std::vector<Rectangle> touching;
+
+    for (int x = floor(collider.x / TILE_DIMENSIONS) * TILE_DIMENSIONS; x - collider.x < collider.width; x += TILE_DIMENSIONS)
+        for (int y = floor(collider.y / TILE_DIMENSIONS) * TILE_DIMENSIONS; y - collider.y < collider.height; y += TILE_DIMENSIONS)
+            if (collides(x, y))
+                return true;
+
+    return false;
+}
+
+bool Level::isAbove(float worldY)
+{
+    return worldY < y;
+}
+
+Rectangle Level::getCollider(float worldX, float worldY)
+{
+    return {
+        floor(worldX / TILE_DIMENSIONS) * TILE_DIMENSIONS,
+        floor(worldY / TILE_DIMENSIONS) * TILE_DIMENSIONS,
+        TILE_DIMENSIONS,
+        TILE_DIMENSIONS
+    };
+}
+
+Vector2 Level::handleCollision(Vector2& position, Rectangle collider, Vector2& velocity)
+{
+    Vector2 result{};
+    Rectangle ac = AssembleCollider(position, collider);
+    Rectangle pc = MoveRectangle(ac, -velocity * Game::delta());
+
+    while (true)
+    {
+        std::vector<Rectangle> touching;
+
+        for (int x = floor(ac.x / TILE_DIMENSIONS) * TILE_DIMENSIONS; x - ac.x < ac.width; x += TILE_DIMENSIONS)
+            for (int y = floor(ac.y / TILE_DIMENSIONS) * TILE_DIMENSIONS; y - ac.y < ac.height; y += TILE_DIMENSIONS)
+                if (collides(x, y))
+                    touching.push_back(getCollider(x, y));
+
+        if (touching.empty())
+            return result;
+
+        Vector2 acc = GetRectangleCenter(ac);
+        Vector2 unstuckResult =
+            GetFixedMobileUnstuckVector(
+                *std::min_element(
+                    touching.begin(),
+                    touching.end(),
+                    [acc](Rectangle r1, Rectangle r2)
+                    { return distance(GetRectangleCenter(r1), acc) < distance(GetRectangleCenter(r2), acc); }),
+                ac,
+                pc);
+
+        result += unstuckResult;
+        position += unstuckResult;
+
+        if (unstuckResult.x)
+            position.x = round(position.x);
+
+        if (unstuckResult.y)
+            position.y = round(position.y);
+
+        if (unstuckResult.x * velocity.x < 0)
+            velocity.x = 0;
+
+        if (unstuckResult.y * velocity.y < 0)
+            velocity.y = 0;
+
+        ac = AssembleCollider(position, collider);
+    }
+}
+
+Vector2 Level::handleWallsCollision(Vector2& position, Rectangle collider, Vector2& velocity)
+{
+    Rectangle ac = AssembleCollider(position, collider);
+
+    if (ac.x < 0)
+    {
+        position.x = -collider.x;
+        velocity.x = 0;
+        return { -ac.x, 0 };
+    }
+    else if (float acr = GetRectangleRight(ac); acr > LEVEL_WIDTH)
+    {
+        position.x = LEVEL_WIDTH - GetRectangleRight(collider);
+        velocity.x = 0;
+        return { LEVEL_WIDTH - acr };
+    }
+
+    return {};
 }
 
 Vector2 Level::levelToWorldCoords(int levelX, int levelY)
@@ -138,14 +255,9 @@ void Level::print()
 {
     for (int j = 0; j < MAX_TILES_Y; ++j)
     {
-         for (int i = 0; i < MAX_TILES_X; ++i)
+        for (int i = 0; i < MAX_TILES_X; ++i)
             std::cout << getTile(i, j) << " ";
 
         std::cout << "\n";
     }
-}
-
-bool Level::isAbove(float worldY)
-{
-    return worldY < y;
 }

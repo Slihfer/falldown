@@ -16,29 +16,35 @@ private:
     int topRow;
     int nextGroundRow;
 
+public:
+    Level();
+
+private:
     TileType& getTile(int gridX, int gridY);
     TileType& getTile(Vector2Int gridCoords);
+    std::vector<TileType>& getTilesInRow(int row);
+    std::vector<std::vector<TileType>>& getTiles();
     int getTopRow();
-    void replaceTopRow();
+    void replaceBottomRow();
     void generate();
     void advanceRow();
 
 public:
-    Level();
-
-    std::vector<std::vector<TileType>>& getTiles();
-    std::vector<TileType>& getTilesInRow(int row);
     bool collides(float worldX, float worldY);
+    bool collides(Rectangle collider);
     bool isAbove(float worldY);
-
+    Rectangle getCollider(float worldX, float worldY);
+    Vector2 handleCollision(Vector2& position, Rectangle collider, Vector2& velocity);
+    Vector2 handleWallsCollision(Vector2& position, Rectangle collider, Vector2& velocity);
     Vector2 levelToWorldCoords(int levelX, int levelY);
     Vector2Int worldToLevelCoords(float worldX, float worldY);
+
     void update();
     void draw();
     void print();
 
 public:
-    static constexpr float BLOB_SPAWN_CHANCE = 0.5f;
+    static constexpr float BLOB_SPAWN_CHANCE = 0.25f;
 };
 
 

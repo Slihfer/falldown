@@ -6,6 +6,7 @@
 #include "draw/View.h"
 #include "objects/Player.h"
 #include "objects/Blob.h"
+#include "objects/Powerup.h"
 #include "objects/Button.h"
 
 class Game
@@ -33,6 +34,7 @@ private:
     std::unique_ptr<View> view;
     std::unique_ptr<Player> player;
     std::vector<Blob> blobs;
+    std::vector<Powerup> powerups;
 
 //Constructors/Destructors
 private:
@@ -94,5 +96,11 @@ public:
     static void spawnBlob(TArgs&& ... args)
     {
         instance().blobs.emplace_back(std::forward<TArgs>(args) ...);
+    }
+
+    template <class ... TArgs>
+    static void spawnPowerup(TArgs&& ... args)
+    {
+        instance().powerups.emplace_back(std::forward<TArgs>(args) ...);
     }
 };

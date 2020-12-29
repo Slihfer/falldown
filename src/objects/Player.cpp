@@ -2,8 +2,6 @@
 
 #include <algorithm>
 
-#include <raymath.h>
-
 #include "core/Game.h"
 #include "core/constants.h"
 #include "draw/Animation.h"
@@ -17,20 +15,23 @@ void Player::update()
     float lastY = y;
     float lastVelocityY = velocity.y;
 
-    velocity.y += GRAVITY * Game::delta();
-    velocity.y *= 1.0f - DRAG * Game::delta();
-
-    if (hitStunTime.isExpired())
-        velocity.x = SPEED * (IsKeyDown(KEY_D) - IsKeyDown(KEY_A));
-
-    if (IsKeyReleased(KEY_K))
+    if (IsKeyUp(KEY_K))
         jumpBoostEndTime.end();
 
-    if (velocity.y != 0 && IsKeyPressed(KEY_K))
+    if (state == Air && IsKeyPressed(KEY_K))
         jumpBuffer.start();
 
     if (hitStunTime.isExpired())
     {
+        if (IsKeyDown(KEY_A) && velocity.x > 0 || IsKeyDown(KEY_D) && velocity.x < 0)
+        {
+            turnTime.start();
+            velocity.x = 0;
+        }
+
+        if (turnTime.isExpired())
+            velocity.x += ACCELERATION * Game::delta() * (IsKeyDown(KEY_D) - IsKeyDown(KEY_A));
+
         if (((velocity.y == 0 && lastVelocityY >= 0) ||
             coyoteTime.isOngoing()) &&
             (IsKeyPressed(KEY_K) ||
@@ -41,6 +42,7 @@ void Player::update()
             jumpBuffer.end();
             jumpBoostStartTime.start();
             jumpBoostEndTime.start();
+            setState(Air);
         }
         else if (velocity.y < 0 && IsKeyDown(KEY_K) && jumpBoostStartTime.isExpired() && jumpBoostEndTime.isOngoing())
         {
@@ -50,64 +52,37 @@ void Player::update()
 
     looksLeft = velocity.x < 0 ? true : velocity.x > 0 ? false : looksLeft;
 
-    position = Vector2Add(position, Vector2Scale(velocity, Game::delta()));
+    velocity.y += GRAVITY * Game::delta();
+    velocity *= 1.0f - DRAG * Game::delta();
+    
+    if (state != Air || (IsKeyDown(KEY_A) || IsKeyDown(KEY_D)))
+        velocity *= 1.0f - FRICTION * Game::delta();
 
-    Vector2 feetCenter = { x + HALF_TILE_DIMENSIONS, y + TILE_DIMENSIONS };
+    if (abs(velocity.x) < SPEED_THRESHOLD)
+        velocity.x = 0;
 
-    if (velocity.x != 0)
+    position += velocity * Game::delta();
+
+    Level& level = Game::getLevel();
+
+    if (collisionEnabled ?
+        level.handleCollision(position, COLLIDER, velocity).y < 0 :
+        (level.handleWallsCollision(position, COLLIDER, velocity), false))
     {
-        if (velocity.x > 0)
-        {
-            if
-            (
-                Game::getLevel().collides(feetCenter.x + COLLIDER.width / 2, feetCenter.y - COLLIDER.height) ||
-                (y < TILE_DIMENSIONS - COLLIDER.y && Game::getLevel().collides(feetCenter.x + COLLIDER.width / 2, feetCenter.y))
-            )
-            {
-                x = floor((x + COLLIDER.x + COLLIDER.width) / TILE_DIMENSIONS) * TILE_DIMENSIONS - COLLIDER.x - COLLIDER.width;
-                velocity.x = 0;
-            }
-        }
-        else
-        {
-            if
-            (
-                Game::getLevel().collides(feetCenter.x - COLLIDER.width / 2, feetCenter.y - COLLIDER.height) ||
-                (y < TILE_DIMENSIONS - COLLIDER.y && Game::getLevel().collides(feetCenter.x - COLLIDER.width / 2, feetCenter.y))
-            )
-            {
-                x = ceil((x + COLLIDER.x) / TILE_DIMENSIONS) * TILE_DIMENSIONS - COLLIDER.x;
-                velocity.x = 0;
-            }
-        }
-    }
-
-    if
-    (
-        (
-            !(fmodf(lastY, TILE_DIMENSIONS)) ||
-            static_cast<int>(lastY / TILE_DIMENSIONS) != static_cast<int>(y / TILE_DIMENSIONS)
-        ) && 
-        (
-            Game::getLevel().collides(feetCenter.x - COLLIDER.width / 2, feetCenter.y) ||
-            Game::getLevel().collides(feetCenter.x + COLLIDER.width / 2, feetCenter.y)
-        )
-    )
-    {
-        y = floor(y / TILE_DIMENSIONS) * TILE_DIMENSIONS;
-        velocity.y = 0;
         coyoteTime.start();
-    }
 
-    if (velocity.y == 0 && lastVelocityY >= 0)
         if (velocity.x == 0)
             setState(Idle);
         else
-            setState(Walking);
+            setState(Walk);
+    }
     else
     {
-        state = Airborn;
+        setState(Air);
     }
+
+    if (!collisionEnabled && powerupTime.isExpired() && !level.collides(getCollider()))
+        collisionEnabled = true;
 }
 
 void Player::draw()
@@ -120,10 +95,10 @@ void Player::draw()
     case Idle:
         DrawSpriteWorld(Animation::get("anim_PlayerIdle").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
         break;
-    case Walking:
+    case Walk:
         DrawSpriteWorld(Animation::get("anim_PlayerWalk").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
         break;
-    case Airborn:
+    case Air:
         if (velocity.y <= SLOW_JUMP_THRESHOLD)
             DrawSpriteWorld(Sprite::get("spr_PlayerFastJump"), position, looksLeft);
         else if (velocity.y <= JUMP_HOVER_THRESHOLD) //velocity.y < PLAYER_FALL_HOVER_THRESHOLD && velocity.y > PLAYER_JUMP_HOVER_THRESHOLD)
@@ -153,8 +128,14 @@ void Player::damage(Vector2 origin, float knockback)
         invulnerabilityTime.start();
         hitStunTime.start();
 
-        velocity = Vector2Scale({ Vector2Normalize(Vector2Subtract(position, origin)).x, -1.0f }, knockback);
+        velocity = Vector2{ normalize(position - origin).x, -1.0f } * knockback;
     }
+}
+
+void Player::powerup()
+{
+    collisionEnabled = false;
+    powerupTime.start();
 }
 
 bool Player::isInvulnerable()
