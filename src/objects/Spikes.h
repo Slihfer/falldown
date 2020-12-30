@@ -2,21 +2,20 @@
 
 #include <raylib.h>
 
-#include "util/Duration.h"
-#include "util/random.h"
+#include "util/Timepoint.h"
 
-class Blob
+class Spikes
 {
 public:
     enum State
     {
-        Spawn,
         Idle,
-        Walk
+        Poke,
+        Out,
+        Retract
     };
 
 private:
-    bool looksLeft;
     State state;
     Timepoint stateTime;
 
@@ -26,11 +25,10 @@ public:
         struct { float x, y; };
         Vector2 position;
     };
-    Vector2 velocity;
 
 public:
-    Blob(Vector2 position);
-    Blob(float x, float y);
+    Spikes(Vector2 position);
+    Spikes(float x, float y);
 
 public:
     void update();
@@ -41,8 +39,9 @@ public:
     Rectangle getCollider();
 
 public:
-    static constexpr float ACCELERATION = 14;
-    static constexpr Rectangle COLLIDER{ 2, 5, 4, 3 };
-    static constexpr float EDGE_SENSE = 1;
+    static constexpr Rectangle COLLIDER{ 1, 0, 6, 8 };
+    static constexpr float ACTIVATION_DISTANCE = 24.0f;
+    static constexpr float COOLDOWN = 0.6f;
+    static constexpr float OUT_TIME = 2.0f;
     static constexpr float KNOCKBACK = 64.0f;
 };

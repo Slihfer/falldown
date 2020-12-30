@@ -22,6 +22,26 @@ Vector2 GetRectangleBottomRight(Rectangle rec)
     return GetRectanglePosition(rec) + GetRectangleDimensions(rec);
 }
 
+Vector2 GetRectangleTopCenter(Rectangle rec)
+{
+    return GetRectanglePosition(rec) + Vector2{ 0.5f * rec.width, 0.0f };
+}
+
+Vector2 GetRectangleBottomCenter(Rectangle rec)
+{
+    return GetRectanglePosition(rec) + Vector2{ 0.5f * rec.width, rec.height };
+}
+
+Vector2 GetRectangleLeftCenter(Rectangle rec)
+{
+    return GetRectanglePosition(rec) + Vector2{ 0.0f, 0.5f * rec.height };
+}
+
+Vector2 GetRectangleRightCenter(Rectangle rec)
+{
+    return GetRectanglePosition(rec) + Vector2{ rec.width, 0.5f * rec.height };
+}
+
 float GetRectangleRight(Rectangle rec)
 {
     return rec.x + rec.width;

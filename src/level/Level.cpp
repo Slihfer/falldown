@@ -76,30 +76,32 @@ void Level::replaceBottomRow()
         for (int i = emptyStart; i < emptyStart + empty; ++i)
             bottomTiles[i] = TileType::Empty;
 
-        if (float r = GetRandomFloat(); r < BLOB_SPAWN_CHANCE)
+        if (float r = GetRandomFloat(); r < SPIKES_SPAWN_CHANCE)
         {
-            r = floor(r * (MAX_TILES_X - empty) / BLOB_SPAWN_CHANCE);
+            r = floor(r / SPIKES_SPAWN_CHANCE * (MAX_TILES_X - empty));
 
-            for (int i = 0; i < emptyStart; ++i)
+            for (int i = 0; i < MAX_TILES_X - empty; ++i)
                 if (r == i)
                 {
-                    Game::spawnBlob(levelToWorldCoords(i, bottomRow) - Vector2{ 0, TILE_DIMENSIONS });
-                    goto endBlobSpawn;
+                    Game::spawnSpikes(levelToWorldCoords(i >= emptyStart ? i + empty : i, bottomRow) - Vector2{ 0, TILE_DIMENSIONS });
+                    break;
                 }
+        }
+        else if (float r = GetRandomFloat(); r < BLOB_SPAWN_CHANCE)
+        {
+            r = floor(r / BLOB_SPAWN_CHANCE * (MAX_TILES_X - empty));
 
-            for (int i = emptyStart + empty; i < MAX_TILES_X; ++i)
-                if (r == i - empty)
+            for (int i = 0; i < MAX_TILES_X - empty; ++i)
+                if (r == i)
                 {
-                    Game::spawnBlob(levelToWorldCoords(i, bottomRow) - Vector2{ 0, TILE_DIMENSIONS });
-                    goto endBlobSpawn;
+                    Game::spawnBlob(levelToWorldCoords(i >= emptyStart ? i + empty : i, bottomRow) - Vector2{ 0, TILE_DIMENSIONS });
+                    break;
                 }
         }
 
     endBlobSpawn:
-        /*if (empty == 1)
-            Game::spawnPowerup(levelToWorldCoords(emptyStart, bottomRow));*/
-
-        Game::spawnPowerup(levelToWorldCoords(TILES_X / 2, bottomRow) - Vector2{ 0, TILE_DIMENSIONS * 3 });
+        if (empty == 1 && GetRandomFloat() < POWERUP_SPAWN_CHANCE)
+            Game::spawnPowerup(levelToWorldCoords(emptyStart, bottomRow));
     }
     else
     {
@@ -248,7 +250,10 @@ void Level::draw()
     for (int i = 0; i < MAX_TILES_X; ++i)
         for (int j = 0; j < MAX_TILES_Y; ++j)
             if (getTile(i, (topRow + j) % MAX_TILES_Y) == TileType::Filled)
-                DrawSpriteWorld(Sprite::get("spr_BaseTile"), i * TILE_DIMENSIONS, j * TILE_DIMENSIONS + y);
+                if (Game::getPlayer().collisionEnabled)
+                    DrawSpriteWorld(Sprite::get("spr_BaseTile"), i * TILE_DIMENSIONS, j * TILE_DIMENSIONS + y);
+                else
+                    DrawSpriteWorld(Sprite::get("spr_BaseTilePowerup"), i * TILE_DIMENSIONS, j * TILE_DIMENSIONS + y, false, true);
 }
 
 void Level::print()

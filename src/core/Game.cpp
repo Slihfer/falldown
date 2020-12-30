@@ -11,11 +11,11 @@
 #include "draw/Sprite.h"
 #include "draw/Animation.h"
 
-Game::Game() : frameTime(0), runTime(0), state(None), allowDestruction(false), destructionFlag(false)
+Game::Game() : shouldExit(false), frameTime(0), runTime(0), state(None), allowDestruction(false), destructionFlag(false), selectedButton(0)
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "falldown");
     SetTargetFPS(TARGET_FPS);
-    //SetExitKey(0);
+    SetExitKey(0);
 
     srand(std::chrono::system_clock::now().time_since_epoch().count());
 }
@@ -27,27 +27,53 @@ Game::~Game()
 
 void Game::loadTextures()
 {
+//Objects
     TextureInfo::load("tex_Player", FROM_SPRITES_FOLDER("player.png"));
     TextureInfo::load("tex_Blob", FROM_SPRITES_FOLDER("blob.png"));
     TextureInfo::load("tex_Powerup", FROM_SPRITES_FOLDER("powerup1.png"));
+    TextureInfo::load("tex_Aura", FROM_SPRITES_FOLDER("aura.png"));
+    TextureInfo::load("tex_Spikes", FROM_SPRITES_FOLDER("spikes.png"));
+    TextureInfo::load("tex_Turret", FROM_SPRITES_FOLDER("laser_turret.png"));
 
+
+//Level
     TextureInfo::load("tex_BaseTile", FROM_SPRITES_FOLDER("tile1.png"));
     TextureInfo::load("tex_BaseTileBG", FROM_SPRITES_FOLDER("bg_tile1.png"));
 
+    
+//UI
     TextureInfo::load("tex_Button", FROM_SPRITES_FOLDER("button.png"));
 }
 
 void Game::loadSprites()
 {
+//Player
     Sprite::load("spr_PlayerLife", TextureInfo::get("tex_Player").texture, Rectangle{ 0, 0, 8, 8 });
     Sprite::load("spr_PlayerFastJump", TextureInfo::get("tex_Player").texture, Rectangle{ 0, 16, 8, 8 });
     Sprite::load("spr_PlayerSlowJump", TextureInfo::get("tex_Player").texture, Rectangle{ 8, 16, 8, 8 });
     Sprite::load("spr_PlayerHover", TextureInfo::get("tex_Player").texture, Rectangle{ 16, 16, 8, 8 });
     Sprite::load("spr_PlayerFall", TextureInfo::get("tex_Player").texture, Rectangle{ 24, 16, 8, 8 });
 
+    Sprite::load("spr_PlayerAura", TextureInfo::get("tex_Aura").texture, Rectangle{ 32, 0, 16, 16 });
+
+
+//Spikes
+    Sprite::load("spr_SpikesIdle", TextureInfo::get("tex_Spikes").texture, Rectangle{ 0, 0, 8, 16 });
+    Sprite::load("spr_SpikesOut", TextureInfo::get("tex_Spikes").texture, Rectangle{ 24, 0, 8, 16 });
+
+
+//Turret
+    Sprite::load("spr_TurretIdle", TextureInfo::get("tex_Turret").texture, Rectangle{ 0, 0, 8, 8 });
+    Sprite::load("spr_TurretShoot", TextureInfo::get("tex_Turret").texture, Rectangle{ 8, 0, 8, 8 });
+
+
+//Level
     Sprite::load("spr_BaseTile", TextureInfo::get("tex_BaseTile").texture, Rectangle{ 0, 0, 8, 8 });
+    Sprite::load("spr_BaseTilePowerup", TextureInfo::get("tex_BaseTile").texture, Rectangle{ 8, 0, 8, 8 });
     Sprite::load("spr_BaseTileBG", TextureInfo::get("tex_BaseTileBG").texture, Rectangle{ 0, 0, 32, 32 });
 
+
+//Button
     Sprite::load("spr_ButtonTopLeft", TextureInfo::get("tex_Button").texture, Rectangle{ 0, 0, 8, 8 });
     Sprite::load("spr_ButtonTop", TextureInfo::get("tex_Button").texture, Rectangle{ 8, 0, 8, 8 });
     Sprite::load("spr_ButtonLeft", TextureInfo::get("tex_Button").texture, Rectangle{ 0, 8, 8, 8 });
@@ -65,7 +91,7 @@ void Game::loadSprites()
 
 void Game::loadAnimations()
 {
-    //Player
+//Player
     Animation::load("anim_PlayerIdle",
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 0, 0, 8, 8 } }, 5.0f },
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 8, 0, 8, 8 } }, 0.1f });
@@ -77,7 +103,7 @@ void Game::loadAnimations()
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 0, 8, 8, 8 } }, 0.1f });
 
 
-    //Blob
+//Blob
     Animation::load("anim_BlobSpawn",
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 0, 0, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 8, 0, 8, 8 } }, 0.1f },
@@ -96,7 +122,7 @@ void Game::loadAnimations()
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 8, 8, 8, 8 } }, 0.15f });
 
 
-    //Powerup
+//Powerup
     Animation::load("anim_PowerupSpawn",
         Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 16, 0, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 0, 8, 8, 8 } }, 0.1f },
@@ -117,11 +143,26 @@ void Game::loadAnimations()
         Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 0, 16, 8, 8 } }, 0.05f },
         Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 8, 16, 8, 8 } }, 0.05f },
         Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 16, 16, 8, 8 } }, 0.05f });
+
+
+//Spikes
+    Animation::load("anim_SpikesPoke",
+        Animation::Frame{ { TextureInfo::get("tex_Spikes").texture, { 8, 0, 8, 16 } }, 0.025f },
+        Animation::Frame{ { TextureInfo::get("tex_Spikes").texture, { 16, 0, 8, 16 } }, 0.025f });
+
+    Animation::load("anim_SpikesRetract",
+        Animation::Frame{ { TextureInfo::get("tex_Spikes").texture, { 16, 0, 8, 16 } }, 0.2f },
+        Animation::Frame{ { TextureInfo::get("tex_Spikes").texture, { 8, 0, 8, 16 } }, 0.2f });
+
+
+//Turret
+    Animation::load("anim_TurretRetract",
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 16, 0, 8, 8 } }, 0.2f });
 }
 
 void Game::initObjects()
 {
-    switchState(MainMenu);
+    setState(MainMenu);
 }
 
 void Game::update()
@@ -146,11 +187,19 @@ void Game::update()
             button.update();
         break;
     case Playing:
+        if (IsKeyPressed(KEY_ESCAPE))
+        {
+            setState(MainMenu);
+            break;
+        }
+
         level->update();
         view->update();
         player->update();
         updateDestructibles(blobs);
         updateDestructibles(powerups);
+        updateDestructibles(spikes);
+
         break;
     }
 
@@ -165,14 +214,14 @@ void Game::draw()
     switch (state)
     {
     case MainMenu:
-        for (Button& button : buttons)
-            button.draw();
+        for (Button& button : buttons) button.draw();
         break;
     case Playing:
         level->draw();
         player->draw();
         for (Blob& blob : blobs) blob.draw();
         for (Powerup& powerup : powerups) powerup.draw();
+        for (Spikes& spike : spikes) spike.draw();
         break;
     }
 
@@ -188,7 +237,7 @@ void Game::run()
     game.loadAnimations();
     game.initObjects();
 
-    while (!WindowShouldClose())
+    while (!(WindowShouldClose() || game.shouldExit))
     {
         game.frameTime = std::min(MAX_FRAME_TIME, GetFrameTime());
         game.runTime += game.frameTime;
@@ -198,6 +247,11 @@ void Game::run()
     }
 
     CloseWindow();
+}
+
+void Game::exit()
+{
+    instance().shouldExit = true;
 }
 
 float Game::delta()
@@ -210,9 +264,24 @@ float Game::time()
     return instance().runTime;
 }
 
-void Game::switchState(State newState)
+void Game::setState(State newState)
 {
     Game& game = instance();
+
+    switch (game.state)
+    {
+    case MainMenu:
+        game.buttons.clear();
+        break;
+    case Playing:
+        game.level.release();
+        game.view.release();
+        game.player.release();
+        game.blobs.clear();
+        game.powerups.clear();
+        game.spikes.clear();
+        break;
+    }
 
     switch (newState)
     {
@@ -222,14 +291,14 @@ void Game::switchState(State newState)
             Rectangle{ TILES_X / 2, TILES_Y * 0.33f, TILES_X / 2, TILES_Y / 10 },
             "Play",
             5,
-            [] { Game::switchState(Playing); },
+            [] { Game::setState(Playing); },
             true
         );
         game.buttons.emplace_back(
             Rectangle{ TILES_X / 2, TILES_Y * 0.67f, TILES_X / 2, TILES_Y / 10 },
-            "Options",
+            "Exit",
             5,
-            [] { Game::switchState(Playing); },
+            [] { Game::exit(); },
             false
         );
         break;

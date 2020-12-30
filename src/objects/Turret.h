@@ -2,17 +2,17 @@
 
 #include <raylib.h>
 
-#include "util/Duration.h"
-#include "util/random.h"
+#include "util/Timepoint.h"
 
-class Blob
+/*
+class Turret
 {
 public:
     enum State
     {
-        Spawn,
         Idle,
-        Walk
+        Shoot,
+        Retract
     };
 
 private:
@@ -26,11 +26,10 @@ public:
         struct { float x, y; };
         Vector2 position;
     };
-    Vector2 velocity;
 
 public:
-    Blob(Vector2 position);
-    Blob(float x, float y);
+    Turret(Vector2 position);
+    Turret(float x, float y);
 
 public:
     void update();
@@ -41,8 +40,10 @@ public:
     Rectangle getCollider();
 
 public:
-    static constexpr float ACCELERATION = 14;
-    static constexpr Rectangle COLLIDER{ 2, 5, 4, 3 };
-    static constexpr float EDGE_SENSE = 1;
+    static constexpr Rectangle COLLIDER{ 0, 3, 8, 2 };
+    static constexpr float ACTIVATION_DISTANCE = 8.0f;
+    static constexpr float COOLDOWN = 2.0f;
+    static constexpr float SHOOT_TIME = 2.0f;
     static constexpr float KNOCKBACK = 64.0f;
 };
+*/

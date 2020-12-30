@@ -17,7 +17,7 @@ void Powerup::update()
     switch (state)
     {
     case Spawn:
-        if (stateTime.elapsed() > Animation::get("anim_PowerupSpawn").getDuration())
+        if (stateTime.elapsed() >= Animation::get("anim_PowerupSpawn").getDuration())
             setState(Idle);
     case Idle:
         if (Player& player = Game::getPlayer(); CheckCollisionRecs(player.getCollider(), getCollider()))
@@ -27,7 +27,7 @@ void Powerup::update()
         }
         break;
     case Dissipate:
-        if (stateTime.elapsed() > Animation::get("anim_PowerupDissipate").getDuration())
+        if (stateTime.elapsed() >= Animation::get("anim_PowerupDissipate").getDuration())
             destroy();
     }
 }

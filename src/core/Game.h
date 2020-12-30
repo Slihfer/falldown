@@ -8,6 +8,7 @@
 #include "objects/Blob.h"
 #include "objects/Powerup.h"
 #include "objects/Button.h"
+#include "objects/Spikes.h"
 
 class Game
 {
@@ -22,6 +23,7 @@ public:
 
 //Members
 private:
+    bool shouldExit;
     float frameTime;
     float runTime;
     bool allowDestruction;
@@ -35,6 +37,7 @@ private:
     std::unique_ptr<Player> player;
     std::vector<Blob> blobs;
     std::vector<Powerup> powerups;
+    std::vector<Spikes> spikes;
 
 //Constructors/Destructors
 private:
@@ -82,9 +85,10 @@ public:
     }
 
     static void run();
+    static void exit();
     static float delta();
     static float time();
-    static void switchState(State newState);
+    static void setState(State newState);
 
     static void flagDestruction();
 
@@ -102,5 +106,11 @@ public:
     static void spawnPowerup(TArgs&& ... args)
     {
         instance().powerups.emplace_back(std::forward<TArgs>(args) ...);
+    }
+
+    template <class ... TArgs>
+    static void spawnSpikes(TArgs&& ... args)
+    {
+        instance().spikes.emplace_back(std::forward<TArgs>(args) ...);
     }
 };

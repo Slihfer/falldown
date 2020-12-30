@@ -48,7 +48,7 @@ public:
 
     void setState(State newState);
 
-    void damage(Vector2 origin, float knockback);
+    void damage(Vector2 knockback);
     void powerup();
 
     bool isInvulnerable();
@@ -59,8 +59,8 @@ public:
     static constexpr float ACCELERATION = 1600.0f;
     static constexpr float SPEED_THRESHOLD = 2.0f;
     static constexpr float GRAVITY = 256.0f;
-    static constexpr Vector2 DRAG{ 1.0f, 2.0f };
-    static constexpr Vector2 FRICTION{ 13.0f, 0.0f };
+    static constexpr Vector2 DRAG{ 2.0f, 2.0f };
+    static constexpr Vector2 FRICTION{ 12.0f, 0.0f };
     static constexpr float JUMP_SPEED = -64.0f;
     static constexpr float SLOW_JUMP_THRESHOLD = -36.0f;
     static constexpr float JUMP_HOVER_THRESHOLD = -6.0f;

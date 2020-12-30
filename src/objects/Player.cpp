@@ -6,6 +6,7 @@
 #include "core/constants.h"
 #include "draw/Animation.h"
 #include "draw/draw.h"
+#include "util/rectangle.h"
 
 //TODO make time checking more general
 
@@ -109,6 +110,9 @@ void Player::draw()
             DrawSpriteWorld(Sprite::get("spr_PlayerFall"), position, looksLeft);
         break;
     }
+
+    if (!collisionEnabled)
+        DrawSpriteWorld(Sprite::get("spr_PlayerAura"), position - HALF_TILE_DIMENSIONS, false, true);
 }
 
 void Player::setState(State newState)
@@ -120,7 +124,7 @@ void Player::setState(State newState)
     }
 }
 
-void Player::damage(Vector2 origin, float knockback)
+void Player::damage(Vector2 knockback)
 {
     if (!isInvulnerable())
     {
@@ -128,7 +132,7 @@ void Player::damage(Vector2 origin, float knockback)
         invulnerabilityTime.start();
         hitStunTime.start();
 
-        velocity = Vector2{ normalize(position - origin).x, -1.0f } * knockback;
+        velocity = knockback;
     }
 }
 

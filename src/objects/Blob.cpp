@@ -5,6 +5,7 @@
 #include "draw/Animation.h"
 #include "draw/draw.h"
 #include "util/collision.h"
+#include "util/rectangle.h"
 
 Blob::Blob(Vector2 position) : Blob(position.x, position.y) {}
 
@@ -23,7 +24,7 @@ void Blob::update()
     switch (state)
     {
     case Spawn:
-        if (stateTime.elapsed() > Animation::get("anim_BlobSpawn").getDuration())
+        if (stateTime.elapsed() >= Animation::get("anim_BlobSpawn").getDuration())
             setState(Walk);
 
         return;
@@ -42,7 +43,7 @@ void Blob::update()
         break;
 
     case Idle:
-        if (stateTime.elapsed() > Animation::get("anim_BlobIdle").getDuration())
+        if (stateTime.elapsed() >= Animation::get("anim_BlobIdle").getDuration())
         {
             setState(Walk);
             looksLeft = !looksLeft;
@@ -56,7 +57,11 @@ void Blob::update()
     if (CheckCollisionRecs(
             { COLLIDER.x + x, COLLIDER.y + y, COLLIDER.width, COLLIDER.height },
             Game::getPlayer().getCollider()))
-        Game::getPlayer().damage(position, 64.0f);
+        Game::getPlayer().damage(
+            normalize(
+                GetRectangleBottomCenter(Game::getPlayer().getCollider())
+                - GetRectangleBottomCenter(getCollider()))
+            * KNOCKBACK);
 }
 
 void Blob::draw()

@@ -44,7 +44,9 @@ public:
     void print();
 
 public:
-    static constexpr float BLOB_SPAWN_CHANCE = 0.25f;
+    static constexpr float BLOB_SPAWN_CHANCE = 0.1f;
+    static constexpr float SPIKES_SPAWN_CHANCE = 0.5f;
+    static constexpr float POWERUP_SPAWN_CHANCE = 0.25f;
 };
 
 
