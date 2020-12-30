@@ -8,7 +8,7 @@ protected:
 public:
     explicit Timepoint(float startTime = currentTime());
     void start();
-    float elapsed();
+    float elapsed() const;
 
     static float currentTime();
 };

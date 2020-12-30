@@ -11,7 +11,14 @@
 #include "draw/Sprite.h"
 #include "draw/Animation.h"
 
-Game::Game() : shouldExit(false), frameTime(0), runTime(0), state(None), allowDestruction(false), destructionFlag(false), selectedButton(0)
+Game::Game() :
+    shouldExit(false),
+    frameTime(0),
+    runTime(0),
+    state(State::None),
+    allowDestruction(false),
+    destructionFlag(false),
+    selectedButton(0)
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "falldown");
     SetTargetFPS(TARGET_FPS);
@@ -53,6 +60,7 @@ void Game::loadSprites()
     Sprite::load("spr_PlayerSlowJump", TextureInfo::get("tex_Player").texture, Rectangle{ 8, 16, 8, 8 });
     Sprite::load("spr_PlayerHover", TextureInfo::get("tex_Player").texture, Rectangle{ 16, 16, 8, 8 });
     Sprite::load("spr_PlayerFall", TextureInfo::get("tex_Player").texture, Rectangle{ 24, 16, 8, 8 });
+    Sprite::load("spr_PlayerHurt", TextureInfo::get("tex_Player").texture, Rectangle{ 16, 0, 8, 8 });
 
     Sprite::load("spr_PlayerAura", TextureInfo::get("tex_Aura").texture, Rectangle{ 32, 0, 16, 16 });
 
@@ -158,11 +166,36 @@ void Game::loadAnimations()
 //Turret
     Animation::load("anim_TurretRetract",
         Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 16, 0, 8, 8 } }, 0.2f });
+
+//Turret Beam
+    Animation::load("anim_TurretBeamCharge",
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 0, 8, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 8, 8, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 16, 8, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 24, 8, 8, 8 } }, 0.05f });
+
+    Animation::load("anim_TurretBeamStart",
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 0, 16, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 8, 16, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 16, 16, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 24, 16, 8, 8 } }, 0.05f });
+
+    Animation::load("anim_TurretBeamCenter",
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 0, 24, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 8, 24, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 16, 24, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 24, 24, 8, 8 } }, 0.05f });
+
+    Animation::load("anim_TurretBeamEnd",
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 0, 32, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 8, 32, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 16, 32, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 24, 32, 8, 8 } }, 0.05f });
 }
 
 void Game::initObjects()
 {
-    setState(MainMenu);
+    setState(State::MainMenu);
 }
 
 void Game::update()
@@ -171,7 +204,7 @@ void Game::update()
 
     switch (state)
     {
-    case MainMenu:
+    case State::MainMenu:
         if (IsKeyPressed(KEY_W))
         {
             buttons[selectedButton].selected = false;
@@ -186,10 +219,10 @@ void Game::update()
         for (Button& button : buttons)
             button.update();
         break;
-    case Playing:
+    case State::Playing:
         if (IsKeyPressed(KEY_ESCAPE))
         {
-            setState(MainMenu);
+            setState(State::MainMenu);
             break;
         }
 
@@ -199,6 +232,7 @@ void Game::update()
         updateDestructibles(blobs);
         updateDestructibles(powerups);
         updateDestructibles(spikes);
+        updateDestructibles(turrets);
 
         break;
     }
@@ -213,15 +247,16 @@ void Game::draw()
 
     switch (state)
     {
-    case MainMenu:
+    case State::MainMenu:
         for (Button& button : buttons) button.draw();
         break;
-    case Playing:
+    case State::Playing:
         level->draw();
         player->draw();
         for (Blob& blob : blobs) blob.draw();
         for (Powerup& powerup : powerups) powerup.draw();
         for (Spikes& spike : spikes) spike.draw();
+        for (Turret& turret : turrets) turret.draw();
         break;
     }
 
@@ -270,10 +305,10 @@ void Game::setState(State newState)
 
     switch (game.state)
     {
-    case MainMenu:
+    case State::MainMenu:
         game.buttons.clear();
         break;
-    case Playing:
+    case State::Playing:
         game.level.release();
         game.view.release();
         game.player.release();
@@ -285,13 +320,13 @@ void Game::setState(State newState)
 
     switch (newState)
     {
-    case MainMenu:
+    case State::MainMenu:
         game.selectedButton = 0;
         game.buttons.emplace_back(
             Rectangle{ TILES_X / 2, TILES_Y * 0.33f, TILES_X / 2, TILES_Y / 10 },
             "Play",
             5,
-            [] { Game::setState(Playing); },
+            [] { Game::setState(State::Playing); },
             true
         );
         game.buttons.emplace_back(
@@ -302,7 +337,7 @@ void Game::setState(State newState)
             false
         );
         break;
-    case Playing:
+    case State::Playing:
         game.level = std::make_unique<Level>();
         game.player = std::make_unique<Player>();
         game.view = std::make_unique<View>();

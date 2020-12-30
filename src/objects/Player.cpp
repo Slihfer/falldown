@@ -10,6 +10,13 @@
 
 //TODO make time checking more general
 
+Player::Player() :
+    PositionalObject((LEVEL_WIDTH - TILE_DIMENSIONS) / 2, LEVEL_HEIGHT - VIEW_MAX_PLAYER_DISTANCE),
+    KineticObject(),
+    DirectionalObject(),
+    ColliderObject(COLLIDER),
+    StateObject(State::Air) {}
+
 void Player::update()
 {
     float lastX = x;
@@ -19,7 +26,7 @@ void Player::update()
     if (IsKeyUp(KEY_K))
         jumpBoostEndTime.end();
 
-    if (state == Air && IsKeyPressed(KEY_K))
+    if (isState(State::Air) && IsKeyPressed(KEY_K))
         jumpBuffer.start();
 
     if (hitStunTime.isExpired())
@@ -43,7 +50,7 @@ void Player::update()
             jumpBuffer.end();
             jumpBoostStartTime.start();
             jumpBoostEndTime.start();
-            setState(Air);
+            setState(State::Air);
         }
         else if (velocity.y < 0 && IsKeyDown(KEY_K) && jumpBoostStartTime.isExpired() && jumpBoostEndTime.isOngoing())
         {
@@ -51,18 +58,18 @@ void Player::update()
         }
     }
 
-    looksLeft = velocity.x < 0 ? true : velocity.x > 0 ? false : looksLeft;
+    looksLeft = hitStunTime.isOngoing() ? looksLeft : IsKeyDown(KEY_A) ? true : IsKeyDown(KEY_D) ? false : looksLeft;
 
     velocity.y += GRAVITY * Game::delta();
     velocity *= 1.0f - DRAG * Game::delta();
     
-    if (state != Air || (IsKeyDown(KEY_A) || IsKeyDown(KEY_D)))
+    if (!isState(State::Air) || (hitStunTime.isExpired() && (IsKeyDown(KEY_A) || IsKeyDown(KEY_D))))
         velocity *= 1.0f - FRICTION * Game::delta();
 
     if (abs(velocity.x) < SPEED_THRESHOLD)
         velocity.x = 0;
 
-    position += velocity * Game::delta();
+    applyVelocity();
 
     Level& level = Game::getLevel();
 
@@ -73,13 +80,13 @@ void Player::update()
         coyoteTime.start();
 
         if (velocity.x == 0)
-            setState(Idle);
+            setState(State::Idle);
         else
-            setState(Walk);
+            setState(State::Walk);
     }
     else
     {
-        setState(Air);
+        setState(State::Air);
     }
 
     if (!collisionEnabled && powerupTime.isExpired() && !level.collides(getCollider()))
@@ -91,46 +98,40 @@ void Player::draw()
     for (int i = 0; i < health; ++i)
         DrawSpriteScreen(Sprite::get("spr_PlayerLife"), i * TILE_DIMENSIONS, 0);
 
-    switch (state)
-    {
-    case Idle:
-        DrawSpriteWorld(Animation::get("anim_PlayerIdle").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
-        break;
-    case Walk:
-        DrawSpriteWorld(Animation::get("anim_PlayerWalk").getCurrentSprite(stateTime.elapsed(), true), position, looksLeft);
-        break;
-    case Air:
-        if (velocity.y <= SLOW_JUMP_THRESHOLD)
-            DrawSpriteWorld(Sprite::get("spr_PlayerFastJump"), position, looksLeft);
-        else if (velocity.y <= JUMP_HOVER_THRESHOLD) //velocity.y < PLAYER_FALL_HOVER_THRESHOLD && velocity.y > PLAYER_JUMP_HOVER_THRESHOLD)
-            DrawSpriteWorld(Sprite::get("spr_PlayerSlowJump"), position, looksLeft);
-        else if (velocity.y <= FALL_HOVER_THRESHOLD)
-            DrawSpriteWorld(Sprite::get("spr_PlayerHover"), position, looksLeft);
-        else
-            DrawSpriteWorld(Sprite::get("spr_PlayerFall"), position, looksLeft);
-        break;
-    }
+    if (hitStunTime.isOngoing())
+        DrawSpriteWorld(Sprite::get("spr_PlayerHurt"), position, looksLeft);
+    else
+        switch (getState())
+        {
+        case State::Idle:
+            DrawSpriteWorld(Animation::get("anim_PlayerIdle").getCurrentSprite(getStateTime().elapsed(), true), position, looksLeft);
+            break;
+        case State::Walk:
+            DrawSpriteWorld(Animation::get("anim_PlayerWalk").getCurrentSprite(getStateTime().elapsed(), true), position, looksLeft);
+            break;
+        case State::Air:
+            if (velocity.y <= SLOW_JUMP_THRESHOLD)
+                DrawSpriteWorld(Sprite::get("spr_PlayerFastJump"), position, looksLeft);
+            else if (velocity.y <= JUMP_HOVER_THRESHOLD) //velocity.y < PLAYER_FALL_HOVER_THRESHOLD && velocity.y > PLAYER_JUMP_HOVER_THRESHOLD)
+                DrawSpriteWorld(Sprite::get("spr_PlayerSlowJump"), position, looksLeft);
+            else if (velocity.y <= FALL_HOVER_THRESHOLD)
+                DrawSpriteWorld(Sprite::get("spr_PlayerHover"), position, looksLeft);
+            else
+                DrawSpriteWorld(Sprite::get("spr_PlayerFall"), position, looksLeft);
+            break;
+        }
 
     if (!collisionEnabled)
         DrawSpriteWorld(Sprite::get("spr_PlayerAura"), position - HALF_TILE_DIMENSIONS, false, true);
 }
 
-void Player::setState(State newState)
-{
-    if (state != newState)
-    {
-        state = newState;
-        stateTime.start();
-    }
-}
-
-void Player::damage(Vector2 knockback)
+void Player::damage(Vector2 knockback, float hitStun)
 {
     if (!isInvulnerable())
     {
         --health;
         invulnerabilityTime.start();
-        hitStunTime.start();
+        hitStunTime.start(hitStun);
 
         velocity = knockback;
     }
@@ -145,9 +146,4 @@ void Player::powerup()
 bool Player::isInvulnerable()
 {
     return invulnerabilityTime.isOngoing();
-}
-
-Rectangle Player::getCollider()
-{
-    return { COLLIDER.x + x, COLLIDER.y + y, COLLIDER.width, COLLIDER.height };
 }

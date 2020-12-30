@@ -9,7 +9,7 @@ void Timepoint::start()
     startTime = Game::time();
 }
 
-float Timepoint::elapsed()
+float Timepoint::elapsed() const
 {
     return Game::time() - startTime;
 }

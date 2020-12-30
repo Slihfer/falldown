@@ -1,19 +1,28 @@
 #pragma once
 
+#include "bases.h"
+
 #include <raylib.h>
 
 #include "util/Duration.h"
 #include "core/constants.h"
 
-class Player
+enum class PlayerState
+{
+    Idle,
+    Walk,
+    Air,
+};
+
+class Player :
+    public virtual PositionalObject,
+    public KineticObject,
+    public DirectionalObject,
+    public ColliderObject,
+    public StateObject<PlayerState>
 {
 public:
-    enum State
-    {
-        Idle,
-        Walk,
-        Air,
-    };
+    using State = PlayerState;
 
 private:
     Duration jumpBuffer{ 0.1f };
@@ -22,38 +31,26 @@ private:
     Duration jumpBoostEndTime{ 0.35f };
     Duration turnTime{ 0.05f };
 
-    Duration hitStunTime{ 0.5f };
+    Duration hitStunTime{ 0.0f };
     Duration invulnerabilityTime{ 1 };
     Duration powerupTime{ 3.0f };
 
 public:
     int health = 3;
 
-    union
-    {
-        struct { float x, y; };
-        Vector2 position{ (LEVEL_WIDTH - TILE_DIMENSIONS) / 2, LEVEL_HEIGHT - VIEW_MAX_PLAYER_DISTANCE };
-    };
-    Vector2 velocity;
-
-    bool looksLeft = true;
-    State state = Air;
-    Timepoint stateTime;
-
     bool collisionEnabled = true;
+
+public:
+    Player();
 
 public:
     void update();
     void draw();
 
-    void setState(State newState);
-
-    void damage(Vector2 knockback);
+    void damage(Vector2 knockback, float hitStun);
     void powerup();
 
     bool isInvulnerable();
-
-    Rectangle getCollider();
 
 public:
     static constexpr float ACCELERATION = 1600.0f;

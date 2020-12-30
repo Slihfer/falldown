@@ -54,14 +54,9 @@ void Blob::update()
 
     x += velocity.x * Game::delta();
 
-    if (CheckCollisionRecs(
-            { COLLIDER.x + x, COLLIDER.y + y, COLLIDER.width, COLLIDER.height },
-            Game::getPlayer().getCollider()))
-        Game::getPlayer().damage(
-            normalize(
-                GetRectangleBottomCenter(Game::getPlayer().getCollider())
-                - GetRectangleBottomCenter(getCollider()))
-            * KNOCKBACK);
+    Player& player = Game::getPlayer();
+    if (CheckCollisionRecs(player.getCollider(), getCollider()))
+        player.damage(KNOCKBACK * Vector2{ GetRectangleCenter(player.getCollider()).x < GetRectangleCenter(getCollider()).x ? -1.0f : 1.0f, 1.0f }, HIT_STUN);
 }
 
 void Blob::draw()

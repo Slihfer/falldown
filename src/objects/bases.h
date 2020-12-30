@@ -2,7 +2,7 @@
 
 #include <raylib.h>
 
-#include "util/Duration.h"
+#include "util/Timepoint.h"
 
 class PositionalObject
 {
@@ -17,12 +17,22 @@ public:
     PositionalObject(float x, float y);
 };
 
-class KineticObject
+class KineticObject : public virtual PositionalObject
 {
 public:
     Vector2 velocity;
 
     KineticObject(Vector2 velocity = {});
+
+    void applyVelocity();
+};
+
+class DirectionalObject
+{
+public:
+    bool looksLeft;
+
+    DirectionalObject(bool looksLeft = false);
 };
 
 template <typename TState>
@@ -30,7 +40,7 @@ class StateObject
 {
 private:
     TState state;
-    Duration stateTime;
+    Timepoint stateTime;
 
 public:
     StateObject(TState state) : state(state) {}
@@ -44,7 +54,17 @@ public:
         }
     }
 
-    const Duration& getStateTime()
+    const TState& getState()
+    {
+        return state;
+    }
+
+    bool isState(TState otherState)
+    {
+        return state == otherState;
+    }
+
+    const Timepoint& getStateTime()
     {
         return stateTime;
     }
@@ -63,5 +83,6 @@ public:
 
 class DestructibleObject
 {
+public:
     void destroy();
 };

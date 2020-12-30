@@ -44,5 +44,6 @@ public:
     static constexpr float ACCELERATION = 14;
     static constexpr Rectangle COLLIDER{ 2, 5, 4, 3 };
     static constexpr float EDGE_SENSE = 1;
-    static constexpr float KNOCKBACK = 64.0f;
+    static constexpr Vector2 KNOCKBACK{ 96.0f, -96.0f };
+    static constexpr float HIT_STUN = 0.5f;
 };

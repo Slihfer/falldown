@@ -3,7 +3,20 @@
 #include "core/Game.h"
 #include "util/collision.h"
 
-ColliderObject::ColliderObject(Rectangle collider) : collider(collider) {}
+PositionalObject::PositionalObject(Vector2 position) : position(position) {}
+
+PositionalObject::PositionalObject(float x, float y) : PositionalObject(Vector2{ x, y }) {}
+
+KineticObject::KineticObject(Vector2 velocity) : PositionalObject({}), velocity(velocity) {}
+
+void KineticObject::applyVelocity()
+{
+    position += velocity * Game::delta();
+}
+
+DirectionalObject::DirectionalObject(bool looksLeft) : looksLeft(looksLeft) {}
+
+ColliderObject::ColliderObject(Rectangle collider) : PositionalObject({}), collider(collider) {}
 
 Rectangle ColliderObject::getCollider()
 {
@@ -14,9 +27,3 @@ void DestructibleObject::destroy()
 {
     Game::flagDestruction();
 }
-
-PositionalObject::PositionalObject(Vector2 position) : position(position) {}
-
-PositionalObject::PositionalObject(float x, float y) : PositionalObject({ x, y }) {}
-
-KineticObject::KineticObject(Vector2 velocity) : velocity(velocity) {}

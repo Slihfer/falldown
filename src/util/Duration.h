@@ -6,6 +6,9 @@
 
 class Duration : public Timepoint
 {
+public:
+    using Timepoint::start;
+
 private:
     float duration;
 
@@ -14,6 +17,7 @@ public:
 
     void setDuration(float newDuration, bool keepRemainingTime = false);
 
+    void start(float newDuration);
     bool startIfExpired();
     void end();
 

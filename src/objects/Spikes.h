@@ -3,28 +3,24 @@
 #include <raylib.h>
 
 #include "util/Timepoint.h"
+#include "bases.h"
 
-class Spikes
+enum class SpikesState
+{
+    Idle,
+    Poke,
+    Out,
+    Retract
+};
+
+class Spikes :
+    public virtual PositionalObject,
+    public ColliderObject,
+    public StateObject<SpikesState>,
+    public DestructibleObject
 {
 public:
-    enum State
-    {
-        Idle,
-        Poke,
-        Out,
-        Retract
-    };
-
-private:
-    State state;
-    Timepoint stateTime;
-
-public:
-    union
-    {
-        struct { float x, y; };
-        Vector2 position;
-    };
+    using State = SpikesState;
 
 public:
     Spikes(Vector2 position);
@@ -33,15 +29,12 @@ public:
 public:
     void update();
     void draw();
-    void destroy();
-
-    void setState(State newState);
-    Rectangle getCollider();
 
 public:
     static constexpr Rectangle COLLIDER{ 1, 0, 6, 8 };
     static constexpr float ACTIVATION_DISTANCE = 24.0f;
     static constexpr float COOLDOWN = 0.6f;
     static constexpr float OUT_TIME = 2.0f;
-    static constexpr float KNOCKBACK = 64.0f;
+    static constexpr Vector2 KNOCKBACK{ 96.0f, -96.0f };
+    static constexpr float HIT_STUN = 0.5f;
 };

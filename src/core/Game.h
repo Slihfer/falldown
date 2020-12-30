@@ -9,12 +9,13 @@
 #include "objects/Powerup.h"
 #include "objects/Button.h"
 #include "objects/Spikes.h"
+#include "objects/Turret.h"
 
 class Game
 {
 //Types
 public:
-    enum State
+    enum class State
     {
         None,
         MainMenu,
@@ -38,6 +39,7 @@ private:
     std::vector<Blob> blobs;
     std::vector<Powerup> powerups;
     std::vector<Spikes> spikes;
+    std::vector<Turret> turrets;
 
 //Constructors/Destructors
 private:
@@ -112,5 +114,11 @@ public:
     static void spawnSpikes(TArgs&& ... args)
     {
         instance().spikes.emplace_back(std::forward<TArgs>(args) ...);
+    }
+
+    template <class ... TArgs>
+    static void spawnTurret(TArgs&& ... args)
+    {
+        instance().turrets.emplace_back(std::forward<TArgs>(args) ...);
     }
 };

@@ -107,6 +107,14 @@ void Level::replaceBottomRow()
     {
         for (int i = 0; i < MAX_TILES_X; ++i)
             bottomTiles[i] = TileType::Empty;
+
+        if (GetRandomFloat() < TURRET_SPAWN_CHANCE)
+        {
+            if (bool left = GetRandomBool(); left)
+                Game::spawnTurret(levelToWorldCoords(0, bottomRow), false);
+            else
+                Game::spawnTurret(levelToWorldCoords(MAX_TILES_X - 1, bottomRow), true);
+        }
     }
 }
 

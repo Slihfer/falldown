@@ -1,49 +1,45 @@
 #pragma once
 
+#include "bases.h"
+
 #include <raylib.h>
 
 #include "util/Timepoint.h"
 
-/*
-class Turret
+enum class TurretState
 {
-public:
-    enum State
-    {
-        Idle,
-        Shoot,
-        Retract
-    };
+    Idle,
+    Charge,
+    Shoot,
+    Retract
+};
 
+class Turret :
+    public virtual PositionalObject,
+    public DirectionalObject,
+    public StateObject<TurretState>,
+    public DestructibleObject
+{
 private:
-    bool looksLeft;
-    State state;
-    Timepoint stateTime;
+    Rectangle collider;
 
 public:
-    union
-    {
-        struct { float x, y; };
-        Vector2 position;
-    };
+    using State = TurretState;
 
 public:
-    Turret(Vector2 position);
-    Turret(float x, float y);
+    Turret(Vector2 position, bool looksLeft);
+    Turret(float x, float y, bool looksLeft);
 
 public:
     void update();
     void draw();
-    void destroy();
-
-    void setState(State newState);
-    Rectangle getCollider();
 
 public:
-    static constexpr Rectangle COLLIDER{ 0, 3, 8, 2 };
+    static constexpr float COLLIDER_OFFSET = 3.0f;
+    static constexpr float COLLIDER_HEIGHT = 2.0f;
     static constexpr float ACTIVATION_DISTANCE = 8.0f;
-    static constexpr float COOLDOWN = 2.0f;
+    static constexpr float CHARGE_TIME = 2.0f;
     static constexpr float SHOOT_TIME = 2.0f;
-    static constexpr float KNOCKBACK = 64.0f;
+    static constexpr Vector2 KNOCKBACK{ 0.0f, -128.0f };
+    static constexpr float HIT_STUN = 0.5f;
 };
-*/

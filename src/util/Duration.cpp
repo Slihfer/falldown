@@ -14,6 +14,12 @@ void Duration::setDuration(float newDuration, bool keepRemainingTime)
     duration = newDuration;
 }
 
+void Duration::start(float newDuration)
+{
+    setDuration(newDuration);
+    start();
+}
+
 bool Duration::startIfExpired()
 {
     if (isExpired())
