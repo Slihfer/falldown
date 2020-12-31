@@ -18,8 +18,8 @@ class Player :
     public virtual PositionalObject,
     public KineticObject,
     public DirectionalObject,
-    public ColliderObject,
-    public StateObject<PlayerState>
+    public StateObject<PlayerState>,
+    public ColliderObject
 {
 public:
     using State = PlayerState;
@@ -32,13 +32,11 @@ private:
     Duration turnTime{ 0.05f };
 
     Duration hitStunTime{ 0.0f };
-    Duration invulnerabilityTime{ 1 };
-    Duration powerupTime{ 3.0f };
+    Duration invulnerabilityTime{ 0.0f };
+    Duration voidPowerupTime{ 3.0f };
 
 public:
     int health = 3;
-
-    bool collisionEnabled = true;
 
 public:
     Player();
@@ -48,7 +46,8 @@ public:
     void draw();
 
     void damage(Vector2 knockback, float hitStun);
-    void powerup();
+    void ghostPowerup();
+    void voidPowerup();
 
     bool isInvulnerable();
 
@@ -63,4 +62,5 @@ public:
     static constexpr float JUMP_HOVER_THRESHOLD = -6.0f;
     static constexpr float FALL_HOVER_THRESHOLD = 10.0f;
     static constexpr Rectangle COLLIDER{ 2.0f, 2.0f, 4.0f, 6.0f };
+    static constexpr float GHOST_POWERUP_TIME = 5.0f;
 };

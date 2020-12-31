@@ -6,7 +6,8 @@
 #include "draw/View.h"
 #include "objects/Player.h"
 #include "objects/Blob.h"
-#include "objects/Powerup.h"
+#include "objects/GhostPowerup.h"
+#include "objects/VoidPowerup.h"
 #include "objects/Button.h"
 #include "objects/Spikes.h"
 #include "objects/Turret.h"
@@ -37,7 +38,8 @@ private:
     std::unique_ptr<View> view;
     std::unique_ptr<Player> player;
     std::vector<Blob> blobs;
-    std::vector<Powerup> powerups;
+    std::vector<GhostPowerup> ghostPowerups;
+    std::vector<VoidPowerup> voidPowerups;
     std::vector<Spikes> spikes;
     std::vector<Turret> turrets;
 
@@ -105,9 +107,15 @@ public:
     }
 
     template <class ... TArgs>
-    static void spawnPowerup(TArgs&& ... args)
+    static void spawnGhostPowerup(TArgs&& ... args)
     {
-        instance().powerups.emplace_back(std::forward<TArgs>(args) ...);
+        instance().ghostPowerups.emplace_back(std::forward<TArgs>(args) ...);
+    }
+
+    template <class ... TArgs>
+    static void spawnVoidPowerup(TArgs&& ... args)
+    {
+        instance().voidPowerups.emplace_back(std::forward<TArgs>(args) ...);
     }
 
     template <class ... TArgs>

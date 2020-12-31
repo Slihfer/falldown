@@ -37,8 +37,12 @@ void Game::loadTextures()
 //Objects
     TextureInfo::load("tex_Player", FROM_SPRITES_FOLDER("player.png"));
     TextureInfo::load("tex_Blob", FROM_SPRITES_FOLDER("blob.png"));
-    TextureInfo::load("tex_Powerup", FROM_SPRITES_FOLDER("powerup1.png"));
-    TextureInfo::load("tex_Aura", FROM_SPRITES_FOLDER("aura.png"));
+    TextureInfo::load("tex_GhostPowerup", FROM_SPRITES_FOLDER("ghost_powerup.png"));
+    TextureInfo::load("tex_VoidPowerup", FROM_SPRITES_FOLDER("void_powerup.png"));
+    TextureInfo::load("tex_VoidPowerupBG", FROM_SPRITES_FOLDER("void_powerupBG.png"));
+    TextureInfo::load("tex_GhostAura", FROM_SPRITES_FOLDER("ghost_aura.png"));
+    TextureInfo::load("tex_VoidAura", FROM_SPRITES_FOLDER("void_aura.png"));
+    TextureInfo::load("tex_VoidAuraBG", FROM_SPRITES_FOLDER("void_auraBG.png"));
     TextureInfo::load("tex_Spikes", FROM_SPRITES_FOLDER("spikes.png"));
     TextureInfo::load("tex_Turret", FROM_SPRITES_FOLDER("laser_turret.png"));
 
@@ -62,7 +66,8 @@ void Game::loadSprites()
     Sprite::load("spr_PlayerFall", TextureInfo::get("tex_Player").texture, Rectangle{ 24, 16, 8, 8 });
     Sprite::load("spr_PlayerHurt", TextureInfo::get("tex_Player").texture, Rectangle{ 16, 0, 8, 8 });
 
-    Sprite::load("spr_PlayerAura", TextureInfo::get("tex_Aura").texture, Rectangle{ 32, 0, 16, 16 });
+    Sprite::load("spr_GhostAura", TextureInfo::get("tex_GhostAura").texture, Rectangle{ 0, 0, 16, 16 });
+    Sprite::load("spr_VoidAura", TextureInfo::get("tex_VoidAura").texture, Rectangle{ 0, 0, 40, 40 });
 
 
 //Spikes
@@ -72,12 +77,12 @@ void Game::loadSprites()
 
 //Turret
     Sprite::load("spr_TurretIdle", TextureInfo::get("tex_Turret").texture, Rectangle{ 0, 0, 8, 8 });
-    Sprite::load("spr_TurretShoot", TextureInfo::get("tex_Turret").texture, Rectangle{ 8, 0, 8, 8 });
+    Sprite::load("spr_TurretCharge", TextureInfo::get("tex_Turret").texture, Rectangle{ 8, 0, 8, 8 });
+    Sprite::load("spr_TurretShoot", TextureInfo::get("tex_Turret").texture, Rectangle{ 16, 0, 8, 8 });
 
 
 //Level
     Sprite::load("spr_BaseTile", TextureInfo::get("tex_BaseTile").texture, Rectangle{ 0, 0, 8, 8 });
-    Sprite::load("spr_BaseTilePowerup", TextureInfo::get("tex_BaseTile").texture, Rectangle{ 8, 0, 8, 8 });
     Sprite::load("spr_BaseTileBG", TextureInfo::get("tex_BaseTileBG").texture, Rectangle{ 0, 0, 32, 32 });
 
 
@@ -110,6 +115,21 @@ void Game::loadAnimations()
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 16, 8, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 0, 8, 8, 8 } }, 0.1f });
 
+    Animation::load("anim_VoidAuraSpawn",
+        Animation::Frame{ { TextureInfo::get("tex_VoidAura").texture, { 80, 0, 40, 40 } }, 0.15f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidAura").texture, { 40, 0, 40, 40 } }, 0.15f });
+
+    Animation::load("anim_VoidAuraDissipate",
+        Animation::Frame{ { TextureInfo::get("tex_VoidAura").texture, { 40, 0, 40, 40 } }, 0.15f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidAura").texture, { 80, 0, 40, 40 } }, 0.15f });
+
+    Animation::load("anim_VoidAuraBG",
+        Animation::Frame{ { TextureInfo::get("tex_VoidAuraBG").texture, { 0, 0, 40, 40 }}, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidAuraBG").texture, { 40, 0, 40, 40 }}, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidAuraBG").texture, { 80, 0, 40, 40 }}, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidAuraBG").texture, { 120, 0, 40, 40 }}, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidAuraBG").texture, { 160, 0, 40, 40 }}, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidAuraBG").texture, { 200, 0, 40, 40 }}, 0.1f });
 
 //Blob
     Animation::load("anim_BlobSpawn",
@@ -130,27 +150,59 @@ void Game::loadAnimations()
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 8, 8, 8, 8 } }, 0.15f });
 
 
-//Powerup
-    Animation::load("anim_PowerupSpawn",
-        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 16, 0, 8, 8 } }, 0.1f },
-        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 0, 8, 8, 8 } }, 0.1f },
-        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 8, 8, 8, 8 } }, 0.1f },
-        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 16, 8, 8, 8 } }, 0.1f },
-        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 0, 8, 8, 8 } }, 0.1f },
-        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 8, 0, 8, 8 } }, 0.1f },
-        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 24, 8, 8, 8 } }, 0.2f },
-        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 8, 0, 8, 8 } }, 0.1f });
+//Ghost Powerup
+    Animation::load("anim_GhostPowerupSpawn",
+        Animation::Frame{ { TextureInfo::get("tex_GhostPowerup").texture, { 16, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_GhostPowerup").texture, { 0, 8, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_GhostPowerup").texture, { 8, 8, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_GhostPowerup").texture, { 16, 8, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_GhostPowerup").texture, { 0, 8, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_GhostPowerup").texture, { 8, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_GhostPowerup").texture, { 24, 8, 8, 8 } }, 0.2f },
+        Animation::Frame{ { TextureInfo::get("tex_GhostPowerup").texture, { 8, 0, 8, 8 } }, 0.1f });
 
-    Animation::load("anim_PowerupIdle",
-        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 0, 0, 8, 8 } }, 0.1f },
-        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 16, 0, 8, 8 } }, 0.3f },
-        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 0, 0, 8, 8 } }, 0.2f },
-        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 8, 0, 8, 8 } }, 0.3f });
+    Animation::load("anim_GhostPowerupIdle",
+        Animation::Frame{ { TextureInfo::get("tex_GhostPowerup").texture, { 0, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_GhostPowerup").texture, { 16, 0, 8, 8 } }, 0.3f },
+        Animation::Frame{ { TextureInfo::get("tex_GhostPowerup").texture, { 0, 0, 8, 8 } }, 0.2f },
+        Animation::Frame{ { TextureInfo::get("tex_GhostPowerup").texture, { 8, 0, 8, 8 } }, 0.3f });
 
-    Animation::load("anim_PowerupDissipate",
-        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 0, 16, 8, 8 } }, 0.05f },
-        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 8, 16, 8, 8 } }, 0.05f },
-        Animation::Frame{ { TextureInfo::get("tex_Powerup").texture, { 16, 16, 8, 8 } }, 0.05f });
+    Animation::load("anim_GhostPowerupDissipate",
+        Animation::Frame{ { TextureInfo::get("tex_GhostPowerup").texture, { 0, 16, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_GhostPowerup").texture, { 8, 16, 8, 8 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_GhostPowerup").texture, { 16, 16, 8, 8 } }, 0.05f });
+
+
+//Void Powerup
+    Animation::load("anim_VoidPowerupSpawn",
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerup").texture, { 0, 8, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerup").texture, { 8, 8, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerup").texture, { 16, 8, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerup").texture, { 24, 8, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerup").texture, { 0, 16, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerup").texture, { 8, 16, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerup").texture, { 16, 16, 8, 8 } }, 0.2f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerup").texture, { 24, 0, 8, 8 } }, 0.1f });
+
+    Animation::load("anim_VoidPowerupIdle",
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerup").texture, { 0, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerup").texture, { 8, 0, 8, 8 } }, 0.3f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerup").texture, { 0, 0, 8, 8 } }, 0.2f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerup").texture, { 16, 8, 8, 8 } }, 0.3f });
+
+    Animation::load("anim_VoidPowerupDissipate",
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerup").texture, { 8, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerup").texture, { 24, 8, 8, 8 } }, 0.1f });
+
+    Animation::load("anim_VoidPowerupSpawnBG",
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerupBG").texture, { 0, 0, 8, 8 } }, 0.4f });
+
+    Animation::load("anim_VoidPowerupIdleBG",
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerupBG").texture, { 0, 0, 8, 8 } }, 0.1f });
+
+    Animation::load("anim_VoidPowerupDissipateBG",
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerupBG").texture, { 0, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidPowerupBG").texture, { 8, 0, 8, 8 } }, 0.1f });
 
 
 //Spikes
@@ -165,14 +217,14 @@ void Game::loadAnimations()
 
 //Turret
     Animation::load("anim_TurretRetract",
-        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 16, 0, 8, 8 } }, 0.2f });
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 24, 0, 8, 8 } }, 0.2f });
 
 //Turret Beam
     Animation::load("anim_TurretBeamCharge",
-        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 0, 8, 8, 8 } }, 0.05f },
-        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 8, 8, 8, 8 } }, 0.05f },
-        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 16, 8, 8, 8 } }, 0.05f },
-        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 24, 8, 8, 8 } }, 0.05f });
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 0, 8, 8, 8 } }, 0.25f },
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 8, 8, 8, 8 } }, 0.25f },
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 16, 8, 8, 8 } }, 0.25f },
+        Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 24, 8, 8, 8 } }, 0.25f });
 
     Animation::load("anim_TurretBeamStart",
         Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 0, 16, 8, 8 } }, 0.05f },
@@ -230,7 +282,8 @@ void Game::update()
         view->update();
         player->update();
         updateDestructibles(blobs);
-        updateDestructibles(powerups);
+        updateDestructibles(ghostPowerups);
+        updateDestructibles(voidPowerups);
         updateDestructibles(spikes);
         updateDestructibles(turrets);
 
@@ -252,11 +305,12 @@ void Game::draw()
         break;
     case State::Playing:
         level->draw();
-        player->draw();
         for (Blob& blob : blobs) blob.draw();
-        for (Powerup& powerup : powerups) powerup.draw();
+        for (GhostPowerup& ghostPowerup : ghostPowerups) ghostPowerup.draw();
+        for (VoidPowerup& voidPowerup : voidPowerups) voidPowerup.draw();
         for (Spikes& spike : spikes) spike.draw();
         for (Turret& turret : turrets) turret.draw();
+        player->draw();
         break;
     }
 
@@ -313,7 +367,7 @@ void Game::setState(State newState)
         game.view.release();
         game.player.release();
         game.blobs.clear();
-        game.powerups.clear();
+        game.ghostPowerups.clear();
         game.spikes.clear();
         break;
     }

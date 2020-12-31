@@ -50,3 +50,8 @@ float Duration::remaining()
 {
     return std::max(0.0f, duration - elapsed());
 }
+
+float Duration::getDuration()
+{
+    return duration;
+}

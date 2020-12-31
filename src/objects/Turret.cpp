@@ -16,6 +16,9 @@ Turret::Turret(float x, float y, bool looksLeft) : Turret({ x, y }, looksLeft) {
 
 void Turret::update()
 {
+    if (Game::getLevel().isAbove(y))
+        destroy();
+
     switch (getState())
     {
     case State::Idle:
@@ -24,7 +27,7 @@ void Turret::update()
 
         break;
     case State::Charge:
-        if (getStateTime().elapsed() >= CHARGE_TIME)
+        if (getStateTime().elapsed() >= Animation::get("anim_TurretBeamCharge").getDuration())
             setState(State::Shoot);
 
         break;
@@ -56,8 +59,8 @@ void Turret::draw()
 
             break;
         case State::Charge:
-            DrawSpriteWorld(Sprite::get("spr_TurretIdle"), position, looksLeft);
-            DrawSpriteWorld(Animation::get("anim_TurretBeamCharge").getCurrentSprite(getStateTime().elapsed(), true), position, looksLeft, true);
+            DrawSpriteWorld(Sprite::get("spr_TurretCharge"), position, looksLeft);
+            DrawSpriteWorld(Animation::get("anim_TurretBeamCharge").getCurrentSprite(getStateTime().elapsed()), position, looksLeft, BLEND_ADDITIVE);
 
             break;
         case State::Shoot:
@@ -67,10 +70,10 @@ void Turret::draw()
             const Animation& beamCenterAnim = Animation::get("anim_TurretBeamCenter");
 
             for (int i = 1; i < TILES_X - 1; ++i)
-                DrawSpriteWorld(beamCenterAnim.getCurrentSprite(getStateTime().elapsed() + (looksLeft ? ((TILES_X - i) * 0.05f) : (i * 0.05f)), true), { static_cast<float>(i * TILE_DIMENSIONS), y }, looksLeft, true);
+                DrawSpriteWorld(beamCenterAnim.getCurrentSprite(getStateTime().elapsed() + (looksLeft ? ((TILES_X - i) * 0.05f) : (i * 0.05f)), true), { static_cast<float>(i * TILE_DIMENSIONS), y }, looksLeft, BLEND_ADDITIVE);
 
-            DrawSpriteWorld(Animation::get("anim_TurretBeamStart").getCurrentSprite(getStateTime().elapsed(), true), position, looksLeft, true);
-            DrawSpriteWorld(Animation::get("anim_TurretBeamEnd").getCurrentSprite(getStateTime().elapsed(), true), { LEVEL_WIDTH - TILE_DIMENSIONS - x, y }, looksLeft, true);
+            DrawSpriteWorld(Animation::get("anim_TurretBeamStart").getCurrentSprite(getStateTime().elapsed(), true), position, looksLeft, BLEND_ADDITIVE);
+            DrawSpriteWorld(Animation::get("anim_TurretBeamEnd").getCurrentSprite(getStateTime().elapsed(), true), { LEVEL_WIDTH - TILE_DIMENSIONS - x, y }, looksLeft, BLEND_ADDITIVE);
 
             break;
         }

@@ -4,24 +4,24 @@
 
 #include "core/Game.h"
 
-void DrawSpriteWorld(const Sprite& sprite, Vector2 position, bool mirror, bool additive)
+void DrawSpriteWorld(const Sprite& sprite, Vector2 position, bool mirror, BlendMode blendMode)
 {
-    DrawSpriteWorld(sprite, position.x, position.y, mirror, additive);
+    DrawSpriteWorld(sprite, position.x, position.y, mirror, blendMode);
 }
 
-void DrawSpriteWorld(const Sprite& sprite, float x, float y, bool mirror, bool additive)
+void DrawSpriteWorld(const Sprite& sprite, float x, float y, bool mirror, BlendMode blendMode)
 {
-    DrawSpriteScreen(sprite, x, y - Game::getView().getY(), mirror, additive);
+    DrawSpriteScreen(sprite, x, y - Game::getView().getY(), mirror, blendMode);
 }
 
-void DrawSpriteParallax(const Sprite& sprite, float x, float y, float zoom, bool mirror, bool additive)
+void DrawSpriteParallax(const Sprite& sprite, float x, float y, float zoom, bool mirror, BlendMode blendMode)
 {
-    DrawSpriteScreen(sprite, zoom * x, zoom * (y - Game::getView().getY()), mirror, additive);
+    DrawSpriteScreen(sprite, zoom * x, zoom * (y - Game::getView().getY()), mirror, blendMode);
 }
 
-void DrawSpriteScreen(const Sprite& sprite, float x, float y, bool mirror, bool additive)
+void DrawSpriteScreen(const Sprite& sprite, float x, float y, bool mirror, BlendMode blendMode)
 {
-    if (additive)
+    if (blendMode != BLEND_ALPHA)
         BeginBlendMode(BLEND_ADDITIVE);
 
     DrawTexturePro(
@@ -32,7 +32,7 @@ void DrawSpriteScreen(const Sprite& sprite, float x, float y, bool mirror, bool 
         0,
         WHITE);
 
-    if (additive)
+    if (blendMode != BLEND_ALPHA)
         EndBlendMode();
 }
 

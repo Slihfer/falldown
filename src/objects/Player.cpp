@@ -71,11 +71,7 @@ void Player::update()
 
     applyVelocity();
 
-    Level& level = Game::getLevel();
-
-    if (collisionEnabled ?
-        level.handleCollision(position, COLLIDER, velocity).y < 0 :
-        (level.handleWallsCollision(position, COLLIDER, velocity), false))
+    if (Game::getLevel().handleCollision(position, COLLIDER, velocity).y < 0)
     {
         coyoteTime.start();
 
@@ -89,8 +85,8 @@ void Player::update()
         setState(State::Air);
     }
 
-    if (!collisionEnabled && powerupTime.isExpired() && !level.collides(getCollider()))
-        collisionEnabled = true;
+    if (IsKeyPressed(KEY_SPACE))
+        voidPowerupTime.start();
 }
 
 void Player::draw()
@@ -121,8 +117,20 @@ void Player::draw()
             break;
         }
 
-    if (!collisionEnabled)
-        DrawSpriteWorld(Sprite::get("spr_PlayerAura"), position - HALF_TILE_DIMENSIONS, false, true);
+    if (invulnerabilityTime.isOngoing())
+        DrawSpriteWorld(Sprite::get("spr_GhostAura"), position - HALF_TILE_DIMENSIONS, false, BLEND_ADDITIVE);
+
+    if (voidPowerupTime.isOngoing())
+    {
+        DrawSpriteWorld(
+            voidPowerupTime.elapsed() < Animation::get("anim_VoidAuraSpawn").getDuration() ?
+            Animation::get("anim_VoidAuraSpawn").getCurrentSprite(voidPowerupTime.elapsed()) : (
+            voidPowerupTime.elapsed() >= voidPowerupTime.getDuration() - Animation::get("anim_VoidAuraDissipate").getDuration() ?
+            Animation::get("anim_VoidAuraDissipate").getCurrentSprite(Animation::get("anim_VoidAuraDissipate").getDuration() - voidPowerupTime.remaining()) :
+            Sprite::get("spr_VoidAura")),
+            position - 16);
+        DrawSpriteWorld(Animation::get("anim_VoidAuraBG").getCurrentSprite(voidPowerupTime.elapsed(), true), position - 16, false, BLEND_ADDITIVE);
+    }
 }
 
 void Player::damage(Vector2 knockback, float hitStun)
@@ -130,17 +138,21 @@ void Player::damage(Vector2 knockback, float hitStun)
     if (!isInvulnerable())
     {
         --health;
-        invulnerabilityTime.start();
+        invulnerabilityTime.start(hitStun * 2.0f);
         hitStunTime.start(hitStun);
 
         velocity = knockback;
     }
 }
 
-void Player::powerup()
+void Player::ghostPowerup()
 {
-    collisionEnabled = false;
-    powerupTime.start();
+    invulnerabilityTime.start(GHOST_POWERUP_TIME);
+}
+
+void Player::voidPowerup()
+{
+    voidPowerupTime.start();
 }
 
 bool Player::isInvulnerable()

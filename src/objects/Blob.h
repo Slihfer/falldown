@@ -1,32 +1,29 @@
 #pragma once
 
+#include "bases.h"
+
 #include <raylib.h>
 
 #include "util/Duration.h"
 #include "util/random.h"
 
-class Blob
+enum class BlobState
+{
+    Spawn,
+    Idle,
+    Walk
+};
+
+class Blob :
+    public virtual PositionalObject,
+    public KineticObject,
+    public DirectionalObject,
+    public StateObject<BlobState>,
+    public ColliderObject,
+    public DestructibleObject
 {
 public:
-    enum State
-    {
-        Spawn,
-        Idle,
-        Walk
-    };
-
-private:
-    bool looksLeft;
-    State state;
-    Timepoint stateTime;
-
-public:
-    union
-    {
-        struct { float x, y; };
-        Vector2 position;
-    };
-    Vector2 velocity;
+    using State = BlobState;
 
 public:
     Blob(Vector2 position);
@@ -35,10 +32,6 @@ public:
 public:
     void update();
     void draw();
-    void destroy();
-
-    void setState(State newState);
-    Rectangle getCollider();
 
 public:
     static constexpr float ACCELERATION = 14;

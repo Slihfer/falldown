@@ -101,7 +101,12 @@ void Level::replaceBottomRow()
 
     endBlobSpawn:
         if (empty == 1 && GetRandomFloat() < POWERUP_SPAWN_CHANCE)
-            Game::spawnPowerup(levelToWorldCoords(emptyStart, bottomRow));
+        {
+            if (GetRandomBool())
+                Game::spawnGhostPowerup(levelToWorldCoords(emptyStart, bottomRow));
+            else
+                Game::spawnVoidPowerup(levelToWorldCoords(emptyStart, bottomRow));
+        }
     }
     else
     {
@@ -110,7 +115,7 @@ void Level::replaceBottomRow()
 
         if (GetRandomFloat() < TURRET_SPAWN_CHANCE)
         {
-            if (bool left = GetRandomBool(); left)
+            if (GetRandomBool())
                 Game::spawnTurret(levelToWorldCoords(0, bottomRow), false);
             else
                 Game::spawnTurret(levelToWorldCoords(MAX_TILES_X - 1, bottomRow), true);
@@ -258,10 +263,7 @@ void Level::draw()
     for (int i = 0; i < MAX_TILES_X; ++i)
         for (int j = 0; j < MAX_TILES_Y; ++j)
             if (getTile(i, (topRow + j) % MAX_TILES_Y) == TileType::Filled)
-                if (Game::getPlayer().collisionEnabled)
-                    DrawSpriteWorld(Sprite::get("spr_BaseTile"), i * TILE_DIMENSIONS, j * TILE_DIMENSIONS + y);
-                else
-                    DrawSpriteWorld(Sprite::get("spr_BaseTilePowerup"), i * TILE_DIMENSIONS, j * TILE_DIMENSIONS + y, false, true);
+                DrawSpriteWorld(Sprite::get("spr_BaseTile"), i * TILE_DIMENSIONS, j * TILE_DIMENSIONS + y);
 }
 
 void Level::print()

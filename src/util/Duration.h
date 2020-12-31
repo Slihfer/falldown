@@ -24,4 +24,5 @@ public:
     bool isOngoing();
     bool isExpired();
     float remaining();
+    float getDuration();
 };
