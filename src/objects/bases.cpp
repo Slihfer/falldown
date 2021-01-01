@@ -2,6 +2,7 @@
 
 #include "core/Game.h"
 #include "util/collision.h"
+#include "util/rectangle.h"
 
 PositionalObject::PositionalObject(Vector2 position) : position(position) {}
 
@@ -26,4 +27,18 @@ Rectangle ColliderObject::getCollider()
 void DestructibleObject::destroy()
 {
     Game::flagDestruction();
+}
+
+VoidDestructibleObject::VoidDestructibleObject() :
+    PositionalObject(Vector2{}),
+    ColliderObject({}),
+    DestructibleObject() {}
+
+void VoidDestructibleObject::handleVoidAuraCollisions()
+{
+    Player& player = Game::getPlayer();
+
+    if (player.hasVoidPowerup() &&
+        CheckCollisionCircleRec(GetRectangleCenter(player.getCollider()), Player::VOID_AURA_RADIUS, getCollider()))
+        destroy();
 }

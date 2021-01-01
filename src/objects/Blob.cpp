@@ -13,7 +13,8 @@ Blob::Blob(Vector2 position) :
     DirectionalObject(GetRandomBool()),
     StateObject(State::Spawn),
     ColliderObject(COLLIDER),
-    DestructibleObject() {}
+    DestructibleObject(),
+    VoidDestructibleObject() {}
 
 
 Blob::Blob(float x, float y) : Blob(Vector2{ x, y }) {}
@@ -22,6 +23,8 @@ void Blob::update()
 {
     if (Game::getLevel().isAbove(y))
         destroy();
+
+    handleVoidAuraCollisions();
 
     switch (getState())
     {

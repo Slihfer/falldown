@@ -86,3 +86,16 @@ class DestructibleObject
 public:
     void destroy();
 };
+
+
+
+class VoidDestructibleObject :
+    public virtual PositionalObject,
+    public virtual ColliderObject,
+    public virtual DestructibleObject
+{
+public:
+    VoidDestructibleObject();
+
+    void handleVoidAuraCollisions();
+};

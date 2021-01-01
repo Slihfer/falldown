@@ -20,18 +20,20 @@ public:
     Level();
 
 private:
-    TileType& getTile(int gridX, int gridY);
-    TileType& getTile(Vector2Int gridCoords);
+    TileType& getTile(int levelX, int levelY);
+    TileType& getTile(Vector2Int levelCoords);
     std::vector<TileType>& getTilesInRow(int row);
     std::vector<std::vector<TileType>>& getTiles();
     int getTopRow();
     void replaceBottomRow();
     void generate();
     void advanceRow();
+    void handleVoidAuraCollisions();
 
 public:
     bool collides(float worldX, float worldY);
     bool collides(Rectangle collider);
+    bool outOfBounds(float worldX, float worldY);
     bool isAbove(float worldY);
     Rectangle getCollider(float worldX, float worldY);
     Vector2 handleCollision(Vector2& position, Rectangle collider, Vector2& velocity);
@@ -48,6 +50,7 @@ public:
     static constexpr float SPIKES_SPAWN_CHANCE = 0.5f;
     static constexpr float TURRET_SPAWN_CHANCE = 0.1f;
     static constexpr float POWERUP_SPAWN_CHANCE = 0.25f;
+    static constexpr float VOID_SPAWN_CHANCE = 0.25f;
 };
 
 

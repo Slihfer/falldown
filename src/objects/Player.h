@@ -33,13 +33,16 @@ private:
 
     Duration hitStunTime{ 0.0f };
     Duration invulnerabilityTime{ 0.0f };
-    Duration voidPowerupTime{ 3.0f };
+    Duration voidPowerupTime{ 5.0f };
 
 public:
     int health = 3;
 
 public:
     Player();
+
+private:
+    void die();
 
 public:
     void update();
@@ -50,9 +53,10 @@ public:
     void voidPowerup();
 
     bool isInvulnerable();
+    bool hasVoidPowerup();
 
 public:
-    static constexpr float ACCELERATION = 1600.0f;
+    static constexpr float ACCELERATION = 1200.0f;
     static constexpr float SPEED_THRESHOLD = 2.0f;
     static constexpr float GRAVITY = 256.0f;
     static constexpr Vector2 DRAG{ 2.0f, 2.0f };
@@ -62,5 +66,6 @@ public:
     static constexpr float JUMP_HOVER_THRESHOLD = -6.0f;
     static constexpr float FALL_HOVER_THRESHOLD = 10.0f;
     static constexpr Rectangle COLLIDER{ 2.0f, 2.0f, 4.0f, 6.0f };
-    static constexpr float GHOST_POWERUP_TIME = 5.0f;
+    static constexpr float GHOST_POWERUP_TIME = 10.0f;
+    static constexpr float VOID_AURA_RADIUS = 14.0f;
 };

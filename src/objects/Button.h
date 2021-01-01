@@ -12,6 +12,7 @@ public:
     std::string label;
     int fontSize;
     std::function<void()> selectAction;
+    int index;
     bool selected;
 
 public:
@@ -19,8 +20,7 @@ public:
         Rectangle shape,
         const std::string& label,
         int fontSize,
-        const std::function<void()>& selectAction,
-        bool selected = false);
+        const std::function<void()>& selectAction);
 
 public:
     void update();

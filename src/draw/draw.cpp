@@ -36,16 +36,40 @@ void DrawSpriteScreen(const Sprite& sprite, float x, float y, bool mirror, Blend
         EndBlendMode();
 }
 
-void DrawInt(int value, int x, int y, int size, Color color)
+void DrawInt(int value, int x, int y, int fontSize, Color color, TextAlignment align)
 {
     std::ostringstream stream;
     stream << value;
-    DrawText(stream.str().c_str(), x, y, size, color);
+
+    switch (align)
+    {
+    case TextAlignment::Left:
+        DrawText(stream.str().c_str(), x, y, fontSize, color);
+        break;
+    case TextAlignment::Center:
+        DrawText(stream.str().c_str(), x - MeasureText(stream.str().c_str(), fontSize) / 2, y, fontSize, color);
+        break;
+    case TextAlignment::Right:
+        DrawText(stream.str().c_str(), x - MeasureText(stream.str().c_str(), fontSize), y, fontSize, color);
+        break;
+    }
 }
 
-void DrawFloat(float value, int x, int y, int size, Color color)
+void DrawFloat(float value, int x, int y, int fontSize, Color color, TextAlignment align)
 {
     std::ostringstream stream;
     stream << value;
-    DrawText(stream.str().c_str(), x, y, size, color);
+
+    switch (align)
+    {
+    case TextAlignment::Left:
+        DrawText(stream.str().c_str(), x, y, fontSize, color);
+        break;
+    case TextAlignment::Center:
+        DrawText(stream.str().c_str(), x - MeasureText(stream.str().c_str(), fontSize) / 2, y, fontSize, color);
+        break;
+    case TextAlignment::Right:
+        DrawText(stream.str().c_str(), x - MeasureText(stream.str().c_str(), fontSize), y, fontSize, color);
+        break;
+    }
 }

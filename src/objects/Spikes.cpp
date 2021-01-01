@@ -11,7 +11,8 @@ Spikes::Spikes(Vector2 position) :
     PositionalObject(position),
     ColliderObject(COLLIDER),
     StateObject(State::Idle),
-    DestructibleObject() {}
+    DestructibleObject(),
+    VoidDestructibleObject() {}
 
 Spikes::Spikes(float x, float y) : Spikes(Vector2{ x, y }) {}
 
@@ -19,6 +20,8 @@ void Spikes::update()
 {
     if (Game::getLevel().isAbove(y))
         destroy();
+
+    handleVoidAuraCollisions();
 
     switch (getState())
     {

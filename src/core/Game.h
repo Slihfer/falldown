@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "level/Level.h"
+#include "screens/Level.h"
 #include "draw/View.h"
 #include "objects/Player.h"
 #include "objects/Blob.h"
@@ -20,6 +20,7 @@ public:
     {
         None,
         MainMenu,
+        Credits,
         Playing
     };
 
@@ -28,9 +29,12 @@ private:
     bool shouldExit;
     float frameTime;
     float runTime;
+    float unpausedRunTime;
     bool allowDestruction;
-    State state;
     bool destructionFlag;
+    State state;
+    bool paused;
+    bool gameOver;
     int selectedButton;
 
     std::vector<Button> buttons;
@@ -92,9 +96,18 @@ public:
     static void exit();
     static float delta();
     static float time();
+    static float unpausedTime();
     static void setState(State newState);
-
     static void flagDestruction();
+
+    static void pause();
+    static void unpause();
+    static void signalGameOver();
+    static void cycleSelectedButtonUp();
+    static void cycleSelectedButtonDown();
+    static int getNextButtonIndex();
+    static int getSelectedButtonIndex();
+    static void selectButton(int index);
 
     static Level& getLevel();
     static View& getView();

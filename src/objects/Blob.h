@@ -19,8 +19,9 @@ class Blob :
     public KineticObject,
     public DirectionalObject,
     public StateObject<BlobState>,
-    public ColliderObject,
-    public DestructibleObject
+    public virtual ColliderObject,
+    public virtual DestructibleObject,
+    public VoidDestructibleObject
 {
 public:
     using State = BlobState;

@@ -7,13 +7,13 @@ Button::Button(
     Rectangle shape,
     const std::string& label,
     int fontSize,
-    const std::function<void()>& selectAction,
-    bool selected) :
+    const std::function<void()>& selectAction) :
     shape(shape),
     label(label),
     fontSize(fontSize),
     selectAction(selectAction),
-    selected(selected) {}
+    index(Game::getNextButtonIndex()),
+    selected(Game::getSelectedButtonIndex() == index) {}
 
 void Button::update()
 {

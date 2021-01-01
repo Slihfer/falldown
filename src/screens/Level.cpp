@@ -38,9 +38,9 @@ TileType& Level::getTile(int levelX, int levelY)
     return getTiles()[levelY][levelX];
 }
 
-TileType& Level::getTile(Vector2Int gridCoords)
+TileType& Level::getTile(Vector2Int levelCoords)
 {
-    return getTile(gridCoords.x, gridCoords.y);
+    return getTile(levelCoords.x, levelCoords.y);
 }
 
 std::vector<TileType>& Level::getTilesInRow(int row)
@@ -99,13 +99,12 @@ void Level::replaceBottomRow()
                 }
         }
 
-    endBlobSpawn:
         if (empty == 1 && GetRandomFloat() < POWERUP_SPAWN_CHANCE)
         {
-            if (GetRandomBool())
-                Game::spawnGhostPowerup(levelToWorldCoords(emptyStart, bottomRow));
-            else
+            if (GetRandomFloat() < VOID_SPAWN_CHANCE)
                 Game::spawnVoidPowerup(levelToWorldCoords(emptyStart, bottomRow));
+            else
+                Game::spawnGhostPowerup(levelToWorldCoords(emptyStart, bottomRow));
         }
     }
     else
@@ -136,6 +135,33 @@ void Level::advanceRow()
     replaceBottomRow();
 }
 
+void Level::handleVoidAuraCollisions()
+{
+    Player& player = Game::getPlayer();
+
+    if (!player.hasVoidPowerup())
+        return;
+
+    Vector2 playerCenter = GetRectangleCenter(player.getCollider());
+
+    for (
+        float scanX = playerCenter.x - Player::VOID_AURA_RADIUS;
+        scanX <= playerCenter.x + Player::VOID_AURA_RADIUS;
+        scanX += TILE_DIMENSIONS)
+
+        for (
+            float scanY = playerCenter.y - Player::VOID_AURA_RADIUS;
+            scanY <= playerCenter.y + Player::VOID_AURA_RADIUS;
+            scanY += TILE_DIMENSIONS)
+
+            if (
+                !outOfBounds(scanX, scanY) &&
+                collides(scanX, scanY) &&
+                CheckCollisionCircleRec(playerCenter, Player::VOID_AURA_RADIUS, getCollider(scanX, scanY)))
+                
+                getTile(worldToLevelCoords(scanX, scanY)) = TileType::Empty;
+}
+
 bool Level::collides(float worldX, float worldY)
 {
     return !(worldY < y || worldY >= y + MAX_TILES_Y * TILE_DIMENSIONS) &&
@@ -153,6 +179,11 @@ bool Level::collides(Rectangle collider)
                 return true;
 
     return false;
+}
+
+bool Level::outOfBounds(float worldX, float worldY)
+{
+    return worldX < 0 || worldX >= LEVEL_WIDTH || worldY < y || worldY >= y + MAX_TILES_Y * TILE_DIMENSIONS;
 }
 
 bool Level::isAbove(float worldY)
@@ -180,10 +211,10 @@ Vector2 Level::handleCollision(Vector2& position, Rectangle collider, Vector2& v
     {
         std::vector<Rectangle> touching;
 
-        for (int x = floor(ac.x / TILE_DIMENSIONS) * TILE_DIMENSIONS; x - ac.x < ac.width; x += TILE_DIMENSIONS)
-            for (int y = floor(ac.y / TILE_DIMENSIONS) * TILE_DIMENSIONS; y - ac.y < ac.height; y += TILE_DIMENSIONS)
-                if (collides(x, y))
-                    touching.push_back(getCollider(x, y));
+        for (int scanX = floor(ac.x / TILE_DIMENSIONS) * TILE_DIMENSIONS; scanX - ac.x < ac.width; scanX += TILE_DIMENSIONS)
+            for (int scanY = floor(ac.y / TILE_DIMENSIONS) * TILE_DIMENSIONS; scanY - ac.y < ac.height; scanY += TILE_DIMENSIONS)
+                if (collides(scanX, scanY))
+                    touching.push_back(getCollider(scanX, scanY));
 
         if (touching.empty())
             return result;
@@ -250,8 +281,10 @@ Vector2Int Level::worldToLevelCoords(float worldX, float worldY)
 
 void Level::update()
 {
-    while (Game::getView().getY() >= y + TILE_DIMENSIONS)
+    while (Game::getView().getY() >= y + (Y_UPPER_OFFSET + 1) * TILE_DIMENSIONS)
         advanceRow();
+
+    handleVoidAuraCollisions();
 }
 
 void Level::draw()

@@ -10,14 +10,20 @@
 #include "draw/TextureInfo.h"
 #include "draw/Sprite.h"
 #include "draw/Animation.h"
+#include "screens/Credits.h"
+#include "screens/GameOver.h"
+#include "screens/MenuBackground.h"
 
 Game::Game() :
     shouldExit(false),
     frameTime(0),
     runTime(0),
-    state(State::None),
+    unpausedRunTime(0),
     allowDestruction(false),
     destructionFlag(false),
+    state(State::None),
+    paused(false),
+    gameOver(false),
     selectedButton(0)
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "falldown");
@@ -116,12 +122,12 @@ void Game::loadAnimations()
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 0, 8, 8, 8 } }, 0.1f });
 
     Animation::load("anim_VoidAuraSpawn",
-        Animation::Frame{ { TextureInfo::get("tex_VoidAura").texture, { 80, 0, 40, 40 } }, 0.15f },
-        Animation::Frame{ { TextureInfo::get("tex_VoidAura").texture, { 40, 0, 40, 40 } }, 0.15f });
+        Animation::Frame{ { TextureInfo::get("tex_VoidAura").texture, { 80, 0, 40, 40 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidAura").texture, { 40, 0, 40, 40 } }, 0.05f });
 
     Animation::load("anim_VoidAuraDissipate",
-        Animation::Frame{ { TextureInfo::get("tex_VoidAura").texture, { 40, 0, 40, 40 } }, 0.15f },
-        Animation::Frame{ { TextureInfo::get("tex_VoidAura").texture, { 80, 0, 40, 40 } }, 0.15f });
+        Animation::Frame{ { TextureInfo::get("tex_VoidAura").texture, { 40, 0, 40, 40 } }, 0.05f },
+        Animation::Frame{ { TextureInfo::get("tex_VoidAura").texture, { 80, 0, 40, 40 } }, 0.05f });
 
     Animation::load("anim_VoidAuraBG",
         Animation::Frame{ { TextureInfo::get("tex_VoidAuraBG").texture, { 0, 0, 40, 40 }}, 0.1f },
@@ -254,41 +260,41 @@ void Game::update()
 {
     allowDestruction = true;
 
+    if (IsKeyPressed(KEY_W))
+        cycleSelectedButtonUp();
+    else if (IsKeyPressed(KEY_S))
+        cycleSelectedButtonDown();
+
     switch (state)
     {
     case State::MainMenu:
-        if (IsKeyPressed(KEY_W))
-        {
-            buttons[selectedButton].selected = false;
-            buttons[selectedButton = (selectedButton + buttons.size() - 1) % buttons.size()].selected = true;
-        }
-        else if (IsKeyPressed(KEY_S))
-        {
-            buttons[selectedButton].selected = false;
-            buttons[selectedButton = (selectedButton + 1) % buttons.size()].selected = true;
-        }
-
-        for (Button& button : buttons)
-            button.update();
+        break;
+    case State::Credits:
         break;
     case State::Playing:
-        if (IsKeyPressed(KEY_ESCAPE))
-        {
-            setState(State::MainMenu);
-            break;
-        }
+        if (!gameOver && IsKeyPressed(KEY_ESCAPE))
+            if (paused)
+                unpause();
+            else
+                pause();
 
-        level->update();
-        view->update();
-        player->update();
-        updateDestructibles(blobs);
-        updateDestructibles(ghostPowerups);
-        updateDestructibles(voidPowerups);
-        updateDestructibles(spikes);
-        updateDestructibles(turrets);
+        if (!(paused || gameOver))
+        {
+            level->update();
+            view->update();
+            player->update();
+            updateDestructibles(blobs);
+            updateDestructibles(ghostPowerups);
+            updateDestructibles(voidPowerups);
+            updateDestructibles(spikes);
+            updateDestructibles(turrets);
+        }
 
         break;
     }
+
+    for (Button& button : buttons)
+        button.update();
 
     allowDestruction = false;
 }
@@ -301,7 +307,12 @@ void Game::draw()
     switch (state)
     {
     case State::MainMenu:
-        for (Button& button : buttons) button.draw();
+        DrawMenuBackground();
+        break;
+    case State::Credits:
+        DrawMenuBackground();
+        DrawCreditsScreen();
+
         break;
     case State::Playing:
         level->draw();
@@ -311,8 +322,14 @@ void Game::draw()
         for (Spikes& spike : spikes) spike.draw();
         for (Turret& turret : turrets) turret.draw();
         player->draw();
+
+        if (gameOver)
+            DrawGameOverScreen();
+
         break;
     }
+
+    for (Button& button : buttons) button.draw();
 
     EndDrawing();
 }
@@ -329,7 +346,11 @@ void Game::run()
     while (!(WindowShouldClose() || game.shouldExit))
     {
         game.frameTime = std::min(MAX_FRAME_TIME, GetFrameTime());
-        game.runTime += game.frameTime;
+
+        if (!(game.paused || game.gameOver))
+            game.runTime += game.frameTime;
+
+        game.unpausedRunTime += game.frameTime;
 
         game.update();
         game.draw();
@@ -353,6 +374,11 @@ float Game::time()
     return instance().runTime;
 }
 
+float Game::unpausedTime()
+{
+    return instance().unpausedRunTime;
+}
+
 void Game::setState(State newState)
 {
     Game& game = instance();
@@ -360,37 +386,52 @@ void Game::setState(State newState)
     switch (game.state)
     {
     case State::MainMenu:
-        game.buttons.clear();
         break;
     case State::Playing:
         game.level.release();
         game.view.release();
         game.player.release();
         game.blobs.clear();
-        game.ghostPowerups.clear();
         game.spikes.clear();
+        game.turrets.clear();
+        game.ghostPowerups.clear();
+        game.voidPowerups.clear();
+        unpause();
+        game.gameOver = false;
         break;
     }
+
+    game.buttons.clear();
+    game.selectedButton = 0;
 
     switch (newState)
     {
     case State::MainMenu:
-        game.selectedButton = 0;
         game.buttons.emplace_back(
-            Rectangle{ TILES_X / 2, TILES_Y * 0.33f, TILES_X / 2, TILES_Y / 10 },
+            Rectangle{ TILES_X / 2, TILES_Y * 0.4f, TILES_X / 2, TILES_Y / 10 },
             "Play",
             5,
-            [] { Game::setState(State::Playing); },
-            true
+            [] { Game::setState(State::Playing); }
         );
         game.buttons.emplace_back(
-            Rectangle{ TILES_X / 2, TILES_Y * 0.67f, TILES_X / 2, TILES_Y / 10 },
+            Rectangle{ TILES_X / 2, TILES_Y * 0.5f, TILES_X / 2, TILES_Y / 10 },
+            "Credits",
+            5,
+            [] { Game::setState(State::Credits); }
+        );
+        game.buttons.emplace_back(
+            Rectangle{ TILES_X / 2, TILES_Y * 0.6f, TILES_X / 2, TILES_Y / 10 },
             "Exit",
             5,
-            [] { Game::exit(); },
-            false
+            [] { Game::exit(); }
         );
         break;
+    case State::Credits:
+        game.buttons.emplace_back(
+            Rectangle{ TILES_X / 2, TILES_Y * 0.8f, TILES_X / 2, TILES_Y / 10 },
+            "Back",
+            5,
+            [] { Game::setState(State::MainMenu); });
     case State::Playing:
         game.level = std::make_unique<Level>();
         game.player = std::make_unique<Player>();
@@ -405,6 +446,78 @@ void Game::flagDestruction()
 {
     if (instance().allowDestruction)
         instance().destructionFlag = true;
+}
+
+void Game::pause()
+{
+    Game& game = instance();
+    
+    game.paused = true;
+
+    game.buttons.emplace_back(
+        Rectangle{ TILES_X / 2, TILES_Y * 0.4f, TILES_X / 2, TILES_Y / 10 },
+        "Resume",
+        5,
+        [] { Game::unpause(); }
+    );
+    game.buttons.emplace_back(
+        Rectangle{ TILES_X / 2, TILES_Y * 0.6f, TILES_X / 2, TILES_Y / 10 },
+        "Quit Run",
+        5,
+        [] { Game::setState(State::MainMenu); }
+    );
+}
+
+void Game::unpause()
+{
+    Game& game = instance();
+
+    game.paused = false;
+    game.buttons.clear();
+}
+
+void Game::signalGameOver()
+{
+    Game& game = instance();
+
+    game.gameOver = true;
+
+    game.buttons.emplace_back(
+        Rectangle{ TILES_X / 2, TILES_Y * 0.8f, TILES_X / 2, TILES_Y / 10 },
+        "Back",
+        5,
+        [] { Game::setState(State::MainMenu); });
+}
+
+void Game::cycleSelectedButtonUp()
+{
+    selectButton((getSelectedButtonIndex() - 1 + getNextButtonIndex()) % getNextButtonIndex());
+}
+
+void Game::cycleSelectedButtonDown()
+{
+    selectButton((getSelectedButtonIndex() + 1) % getNextButtonIndex());
+}
+
+int Game::getNextButtonIndex()
+{
+    return instance().buttons.size();
+}
+
+int Game::getSelectedButtonIndex()
+{
+    return instance().selectedButton;
+}
+
+void Game::selectButton(int index)
+{
+    Game& game = instance();
+
+    if (index < 0 || index >= game.buttons.size())
+        return;
+
+    game.buttons[game.selectedButton].selected = false;
+    game.buttons[game.selectedButton = index].selected = true;
 }
 
 Level& Game::getLevel()

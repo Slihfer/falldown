@@ -17,11 +17,19 @@ Player::Player() :
     ColliderObject(COLLIDER),
     StateObject(State::Air) {}
 
+void Player::die()
+{
+    Game::signalGameOver();
+}
+
 void Player::update()
 {
     float lastX = x;
     float lastY = y;
     float lastVelocityY = velocity.y;
+
+    if (Game::getLevel().isAbove(y))
+        die();
 
     if (IsKeyUp(KEY_K))
         jumpBoostEndTime.end();
@@ -38,7 +46,10 @@ void Player::update()
         }
 
         if (turnTime.isExpired())
+        {
             velocity.x += ACCELERATION * Game::delta() * (IsKeyDown(KEY_D) - IsKeyDown(KEY_A));
+            looksLeft = IsKeyDown(KEY_A) ? true : IsKeyDown(KEY_D) ? false : looksLeft;
+        }
 
         if (((velocity.y == 0 && lastVelocityY >= 0) ||
             coyoteTime.isOngoing()) &&
@@ -52,24 +63,23 @@ void Player::update()
             jumpBoostEndTime.start();
             setState(State::Air);
         }
-        else if (velocity.y < 0 && IsKeyDown(KEY_K) && jumpBoostStartTime.isExpired() && jumpBoostEndTime.isOngoing())
+        else if (velocity.y < 0 && (jumpBoostStartTime.isOngoing() || (IsKeyDown(KEY_K) && jumpBoostEndTime.isOngoing())))
         {
             velocity.y = JUMP_SPEED;
         }
     }
 
-    looksLeft = hitStunTime.isOngoing() ? looksLeft : IsKeyDown(KEY_A) ? true : IsKeyDown(KEY_D) ? false : looksLeft;
-
     velocity.y += GRAVITY * Game::delta();
-    velocity *= 1.0f - DRAG * Game::delta();
     
-    if (!isState(State::Air) || (hitStunTime.isExpired() && (IsKeyDown(KEY_A) || IsKeyDown(KEY_D))))
-        velocity *= 1.0f - FRICTION * Game::delta();
 
     if (abs(velocity.x) < SPEED_THRESHOLD)
         velocity.x = 0;
 
     applyVelocity();
+
+    if (!isState(State::Air) || (hitStunTime.isExpired() && (IsKeyDown(KEY_A) || IsKeyDown(KEY_D))))
+        velocity *= 1.0f - FRICTION * Game::delta();
+    velocity *= 1.0f - DRAG * Game::delta();
 
     if (Game::getLevel().handleCollision(position, COLLIDER, velocity).y < 0)
     {
@@ -84,9 +94,6 @@ void Player::update()
     {
         setState(State::Air);
     }
-
-    if (IsKeyPressed(KEY_SPACE))
-        voidPowerupTime.start();
 }
 
 void Player::draw()
@@ -137,7 +144,9 @@ void Player::damage(Vector2 knockback, float hitStun)
 {
     if (!isInvulnerable())
     {
-        --health;
+        if (!--health)
+            die();
+
         invulnerabilityTime.start(hitStun * 2.0f);
         hitStunTime.start(hitStun);
 
@@ -158,4 +167,9 @@ void Player::voidPowerup()
 bool Player::isInvulnerable()
 {
     return invulnerabilityTime.isOngoing();
+}
+
+bool Player::hasVoidPowerup()
+{
+    return voidPowerupTime.isOngoing();
 }
