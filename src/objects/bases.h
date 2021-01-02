@@ -43,7 +43,7 @@ private:
     Timepoint stateTime;
 
 public:
-    StateObject(TState state) : state(state) {}
+    StateObject(TState state, float stateTime = Timepoint::currentTime()) : state(state), stateTime(stateTime) {}
 
     void setState(TState newState)
     {

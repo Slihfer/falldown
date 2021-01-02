@@ -12,17 +12,19 @@
 #include "objects/Spikes.h"
 #include "objects/Turret.h"
 
-class Game
+enum class GameState
+{
+    None,
+    MainMenu,
+    Credits,
+    Playing
+};
+
+class Game : public StateObject<GameState>
 {
 //Types
 public:
-    enum class State
-    {
-        None,
-        MainMenu,
-        Credits,
-        Playing
-    };
+    using State = GameState;
 
 //Members
 private:
@@ -32,7 +34,6 @@ private:
     float unpausedRunTime;
     bool allowDestruction;
     bool destructionFlag;
-    State state;
     bool paused;
     bool gameOver;
     int selectedButton;

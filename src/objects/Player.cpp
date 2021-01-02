@@ -7,6 +7,7 @@
 #include "draw/Animation.h"
 #include "draw/draw.h"
 #include "util/rectangle.h"
+#include "screens/MenuBackground.h"
 
 //TODO make time checking more general
 
@@ -99,7 +100,9 @@ void Player::update()
 void Player::draw()
 {
     for (int i = 0; i < health; ++i)
-        DrawSpriteScreen(Sprite::get("spr_PlayerLife"), i * TILE_DIMENSIONS, 0);
+        DrawSpriteScreen(Sprite::get("spr_PlayerLife"), i * TILE_DIMENSIONS + 4, 4);
+
+    DrawUIBox({ 2, 1, 3.5f, 1.5f });
 
     if (hitStunTime.isOngoing())
         DrawSpriteWorld(Sprite::get("spr_PlayerHurt"), position, looksLeft);

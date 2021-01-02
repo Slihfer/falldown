@@ -15,13 +15,13 @@
 #include "screens/MenuBackground.h"
 
 Game::Game() :
+    StateObject(State::None, 0),
     shouldExit(false),
     frameTime(0),
     runTime(0),
     unpausedRunTime(0),
     allowDestruction(false),
     destructionFlag(false),
-    state(State::None),
     paused(false),
     gameOver(false),
     selectedButton(0)
@@ -59,7 +59,7 @@ void Game::loadTextures()
 
     
 //UI
-    TextureInfo::load("tex_Button", FROM_SPRITES_FOLDER("button.png"));
+    TextureInfo::load("tex_UI", FROM_SPRITES_FOLDER("ui.png"));
 }
 
 void Game::loadSprites()
@@ -93,19 +93,26 @@ void Game::loadSprites()
 
 
 //Button
-    Sprite::load("spr_ButtonTopLeft", TextureInfo::get("tex_Button").texture, Rectangle{ 0, 0, 8, 8 });
-    Sprite::load("spr_ButtonTop", TextureInfo::get("tex_Button").texture, Rectangle{ 8, 0, 8, 8 });
-    Sprite::load("spr_ButtonLeft", TextureInfo::get("tex_Button").texture, Rectangle{ 0, 8, 8, 8 });
-    Sprite::load("spr_ButtonCenter", TextureInfo::get("tex_Button").texture, Rectangle{ 8, 8, 8, 8 });
-    Sprite::load("spr_ButtonBottomLeft", TextureInfo::get("tex_Button").texture, Rectangle{ 0, 16, 8, 8 });
-    Sprite::load("spr_ButtonBottom", TextureInfo::get("tex_Button").texture, Rectangle{ 8, 16, 8, 8 });
+    Sprite::load("spr_ButtonTopLeft", TextureInfo::get("tex_UI").texture, Rectangle{ 0, 0, 8, 8 });
+    Sprite::load("spr_ButtonTop", TextureInfo::get("tex_UI").texture, Rectangle{ 8, 0, 8, 8 });
+    Sprite::load("spr_ButtonLeft", TextureInfo::get("tex_UI").texture, Rectangle{ 0, 8, 8, 8 });
+    Sprite::load("spr_ButtonCenter", TextureInfo::get("tex_UI").texture, Rectangle{ 8, 8, 8, 8 });
+    Sprite::load("spr_ButtonBottomLeft", TextureInfo::get("tex_UI").texture, Rectangle{ 0, 16, 8, 8 });
+    Sprite::load("spr_ButtonBottom", TextureInfo::get("tex_UI").texture, Rectangle{ 8, 16, 8, 8 });
 
-    Sprite::load("spr_ButtonTopLeftSelected", TextureInfo::get("tex_Button").texture, Rectangle{ 16, 0, 8, 8 });
-    Sprite::load("spr_ButtonTopSelected", TextureInfo::get("tex_Button").texture, Rectangle{ 24, 0, 8, 8 });
-    Sprite::load("spr_ButtonLeftSelected", TextureInfo::get("tex_Button").texture, Rectangle{ 16, 8, 8, 8 });
-    Sprite::load("spr_ButtonCenterSelected", TextureInfo::get("tex_Button").texture, Rectangle{ 24, 8, 8, 8 });
-    Sprite::load("spr_ButtonBottomLeftSelected", TextureInfo::get("tex_Button").texture, Rectangle{ 16, 16, 8, 8 });
-    Sprite::load("spr_ButtonBottomSelected", TextureInfo::get("tex_Button").texture, Rectangle{ 24, 16, 8, 8 });
+    Sprite::load("spr_ButtonTopLeftSelected", TextureInfo::get("tex_UI").texture, Rectangle{ 16, 0, 8, 8 });
+    Sprite::load("spr_ButtonTopSelected", TextureInfo::get("tex_UI").texture, Rectangle{ 24, 0, 8, 8 });
+    Sprite::load("spr_ButtonLeftSelected", TextureInfo::get("tex_UI").texture, Rectangle{ 16, 8, 8, 8 });
+    Sprite::load("spr_ButtonCenterSelected", TextureInfo::get("tex_UI").texture, Rectangle{ 24, 8, 8, 8 });
+    Sprite::load("spr_ButtonBottomLeftSelected", TextureInfo::get("tex_UI").texture, Rectangle{ 16, 16, 8, 8 });
+    Sprite::load("spr_ButtonBottomSelected", TextureInfo::get("tex_UI").texture, Rectangle{ 24, 16, 8, 8 });
+
+    Sprite::load("spr_UIBoxTopLeft", TextureInfo::get("tex_UI").texture, Rectangle{ 32, 0, 8, 8 });
+    Sprite::load("spr_UIBoxTop", TextureInfo::get("tex_UI").texture, Rectangle{ 40, 0, 8, 8 });
+    Sprite::load("spr_UIBoxLeft", TextureInfo::get("tex_UI").texture, Rectangle{ 32, 8, 8, 8 });
+    Sprite::load("spr_UIBoxCenter", TextureInfo::get("tex_UI").texture, Rectangle{ 40, 8, 8, 8 });
+    Sprite::load("spr_UIBoxBottomLeft", TextureInfo::get("tex_UI").texture, Rectangle{ 32, 16, 8, 8 });
+    Sprite::load("spr_UIBoxBottom", TextureInfo::get("tex_UI").texture, Rectangle{ 40, 16, 8, 8 });
 }
 
 void Game::loadAnimations()
@@ -265,7 +272,7 @@ void Game::update()
     else if (IsKeyPressed(KEY_S))
         cycleSelectedButtonDown();
 
-    switch (state)
+    switch (getState())
     {
     case State::MainMenu:
         break;
@@ -304,7 +311,7 @@ void Game::draw()
     BeginDrawing();
     ClearBackground(BLACK);
 
-    switch (state)
+    switch (getState())
     {
     case State::MainMenu:
         DrawMenuBackground();
@@ -325,6 +332,9 @@ void Game::draw()
 
         if (gameOver)
             DrawGameOverScreen();
+
+        if (paused)
+            DrawUIBox({ TILES_X / 2, TILES_Y / 2, TILES_X - 6, TILES_Y - 6 });
 
         break;
     }
@@ -383,7 +393,7 @@ void Game::setState(State newState)
 {
     Game& game = instance();
 
-    switch (game.state)
+    switch (game.getState())
     {
     case State::MainMenu:
         break;
@@ -439,7 +449,7 @@ void Game::setState(State newState)
         break;
     }
 
-    game.state = newState;
+    game.StateObject::setState(newState);
 }
 
 void Game::flagDestruction()
