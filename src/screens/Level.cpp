@@ -83,7 +83,7 @@ void Level::replaceBottomRow()
             for (int i = 0; i < MAX_TILES_X - empty; ++i)
                 if (r == i)
                 {
-                    Game::spawnSpikes(levelToWorldCoords(i >= emptyStart ? i + empty : i, bottomRow) - Vector2{ 0, TILE_DIMENSIONS });
+                    Game::spawn<Spikes>(levelToWorldCoords(i >= emptyStart ? i + empty : i, bottomRow) - Vector2{ 0, TILE_DIMENSIONS });
                     break;
                 }
         }
@@ -94,7 +94,7 @@ void Level::replaceBottomRow()
             for (int i = 0; i < MAX_TILES_X - empty; ++i)
                 if (r == i)
                 {
-                    Game::spawnBlob(levelToWorldCoords(i >= emptyStart ? i + empty : i, bottomRow) - Vector2{ 0, TILE_DIMENSIONS });
+                    Game::spawn<Blob>(levelToWorldCoords(i >= emptyStart ? i + empty : i, bottomRow) - Vector2{ 0, TILE_DIMENSIONS });
                     break;
                 }
         }
@@ -102,9 +102,9 @@ void Level::replaceBottomRow()
         if (empty == 1 && GetRandomFloat() < POWERUP_SPAWN_CHANCE)
         {
             if (GetRandomFloat() < VOID_SPAWN_CHANCE)
-                Game::spawnVoidPowerup(levelToWorldCoords(emptyStart, bottomRow));
+                Game::spawn<VoidPowerup>(levelToWorldCoords(emptyStart, bottomRow));
             else
-                Game::spawnGhostPowerup(levelToWorldCoords(emptyStart, bottomRow));
+                Game::spawn<GhostPowerup>(levelToWorldCoords(emptyStart, bottomRow));
         }
     }
     else
@@ -115,9 +115,9 @@ void Level::replaceBottomRow()
         if (GetRandomFloat() < TURRET_SPAWN_CHANCE)
         {
             if (GetRandomBool())
-                Game::spawnTurret(levelToWorldCoords(0, bottomRow), false);
+                Game::spawn<Turret>(levelToWorldCoords(0, bottomRow), false);
             else
-                Game::spawnTurret(levelToWorldCoords(MAX_TILES_X - 1, bottomRow), true);
+                Game::spawn<Turret>(levelToWorldCoords(MAX_TILES_X - 1, bottomRow), true);
         }
     }
 }

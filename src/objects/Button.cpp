@@ -1,7 +1,9 @@
 #include "Button.h"
 
 #include "core/Game.h"
+#include "core/input.h"
 #include "draw/draw.h"
+#include "util/rectangle.h"
 
 Button::Button(
     Rectangle shape,
@@ -17,8 +19,31 @@ Button::Button(
 
 void Button::update()
 {
-    if (selected && IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_K))
-        selectAction();
+    switch (Game::getInputType())
+    {
+    case InputType::Mouse:
+        if (CheckCollisionPointRec(
+            Game::getMousePosition(),
+            AssembleRectangle(
+                (GetRectanglePosition(shape) - 0.5f * GetRectangleDimensions(shape)) * TILE_DIMENSIONS * ZOOM,
+                GetRectangleDimensions(shape) * ZOOM * TILE_DIMENSIONS)))
+        {
+            Game::selectButton(index);
+
+            if (IsInputStarted<InputAction::Select>())
+                selectAction();
+        }
+        else
+        {
+            Game::deselectButton(index);
+        }
+
+        break;
+    case InputType::Keyboard:
+    case InputType::Controller:
+        if (selected && IsInputStarted<InputAction::Select>())
+            selectAction();
+    }
 }
 
 void Button::draw()

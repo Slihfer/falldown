@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "core/Game.h"
+#include "core/input.h"
 #include "core/constants.h"
 #include "draw/Animation.h"
 #include "draw/draw.h"
@@ -25,22 +26,18 @@ void Player::die()
 
 void Player::update()
 {
-    float lastX = x;
-    float lastY = y;
-    float lastVelocityY = velocity.y;
-
     if (Game::getLevel().isAbove(y))
         die();
 
-    if (IsKeyUp(KEY_K))
+    if (IsInputInactive<InputAction::Jump>())
         jumpBoostEndTime.end();
 
-    if (isState(State::Air) && IsKeyPressed(KEY_K))
+    if (isState(State::Air) && IsInputStarted<InputAction::Jump>())
         jumpBuffer.start();
 
     if (hitStunTime.isExpired())
     {
-        if (IsKeyDown(KEY_A) && velocity.x > 0 || IsKeyDown(KEY_D) && velocity.x < 0)
+        if (IsInputActive<InputAction::Left>() && velocity.x > 0 || IsInputActive<InputAction::Right>() && velocity.x < 0)
         {
             turnTime.start();
             velocity.x = 0;
@@ -48,14 +45,14 @@ void Player::update()
 
         if (turnTime.isExpired())
         {
-            velocity.x += ACCELERATION * Game::delta() * (IsKeyDown(KEY_D) - IsKeyDown(KEY_A));
-            looksLeft = IsKeyDown(KEY_A) ? true : IsKeyDown(KEY_D) ? false : looksLeft;
+            velocity.x += ACCELERATION * Game::delta() * (IsInputActive<InputAction::Right>() - IsInputActive<InputAction::Left>());
+            looksLeft = IsInputActive<InputAction::Left>() ^ IsInputActive<InputAction::Right>() ? IsInputActive<InputAction::Left>() : looksLeft;
         }
 
-        if (((velocity.y == 0 && lastVelocityY >= 0) ||
+        if ((getState() != State::Air ||
             coyoteTime.isOngoing()) &&
-            (IsKeyPressed(KEY_K) ||
-                (jumpBuffer.isOngoing()) && IsKeyDown(KEY_K)))
+            (IsInputStarted<InputAction::Jump>() ||
+                (jumpBuffer.isOngoing()) && IsInputActive<InputAction::Jump>()))
         {
             velocity.y = JUMP_SPEED;
             coyoteTime.end();
@@ -64,7 +61,7 @@ void Player::update()
             jumpBoostEndTime.start();
             setState(State::Air);
         }
-        else if (velocity.y < 0 && (jumpBoostStartTime.isOngoing() || (IsKeyDown(KEY_K) && jumpBoostEndTime.isOngoing())))
+        else if (velocity.y < 0 && (jumpBoostStartTime.isOngoing() || (IsInputActive<InputAction::Jump>() && jumpBoostEndTime.isOngoing())))
         {
             velocity.y = JUMP_SPEED;
         }
@@ -78,7 +75,7 @@ void Player::update()
 
     applyVelocity();
 
-    if (!isState(State::Air) || (hitStunTime.isExpired() && (IsKeyDown(KEY_A) || IsKeyDown(KEY_D))))
+    if (!isState(State::Air) || (hitStunTime.isExpired() && (IsInputActive<InputAction::Left>() || IsInputActive<InputAction::Right>())))
         velocity *= 1.0f - FRICTION * Game::delta();
     velocity *= 1.0f - DRAG * Game::delta();
 
@@ -102,7 +99,7 @@ void Player::draw()
     for (int i = 0; i < health; ++i)
         DrawSpriteScreen(Sprite::get("spr_PlayerLife"), i * TILE_DIMENSIONS + 4, 4);
 
-    DrawUIBox({ 2, 1, 3.5f, 1.5f });
+    DrawUIBox({ 2, 1, 4.0f, 2 });
 
     if (hitStunTime.isOngoing())
         DrawSpriteWorld(Sprite::get("spr_PlayerHurt"), position, looksLeft);

@@ -19,6 +19,6 @@ public:
 
 public:
     static constexpr float MIN_SCROLL_SPEED = 2;
-    static constexpr float MAX_SCROLL_SPEED = 8;
-    static constexpr float SCROLL_ACCELERATION = 0.05f;
+    static constexpr float MAX_SCROLL_SPEED = 6;
+    static constexpr float SCROLL_ACCELERATION = 0.025f;
 };

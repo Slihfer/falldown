@@ -40,7 +40,7 @@ public:
     static constexpr float COLLIDER_OFFSET = 3.0f;
     static constexpr float COLLIDER_HEIGHT = 2.0f;
     static constexpr float ACTIVATION_DISTANCE = 8.0f;
-    static constexpr float SHOOT_TIME = 2.0f;
+    static constexpr float SHOOT_TIME = 1.0f;
     static constexpr Vector2 KNOCKBACK{ 0.0f, -128.0f };
     static constexpr float HIT_STUN = 0.5f;
     static constexpr Rectangle COLLIDER{ 0.0f, 0.0f, 8.0f, 8.0f };

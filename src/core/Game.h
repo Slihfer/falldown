@@ -11,6 +11,7 @@
 #include "objects/Button.h"
 #include "objects/Spikes.h"
 #include "objects/Turret.h"
+#include "util/ObjectContainer.h"
 
 enum class GameState
 {
@@ -18,6 +19,14 @@ enum class GameState
     MainMenu,
     Credits,
     Playing
+};
+
+enum class InputType
+{
+    Keyboard,
+    Mouse,
+    Controller,
+    Count
 };
 
 class Game : public StateObject<GameState>
@@ -28,6 +37,7 @@ public:
 
 //Members
 private:
+    InputType inputType;
     bool shouldExit;
     float frameTime;
     float runTime;
@@ -37,16 +47,22 @@ private:
     bool paused;
     bool gameOver;
     int selectedButton;
+    Vector2 mousePosition;
+    Vector2 lastMousePosition;
+    Vector2 lastControllerLeftStickAxis;
 
-    std::vector<Button> buttons;
+    ObjectContainer<
+        Blob,
+        GhostPowerup,
+        VoidPowerup,
+        Spikes,
+        Turret> objects;
+
     std::unique_ptr<Level> level;
     std::unique_ptr<View> view;
     std::unique_ptr<Player> player;
-    std::vector<Blob> blobs;
-    std::vector<GhostPowerup> ghostPowerups;
-    std::vector<VoidPowerup> voidPowerups;
-    std::vector<Spikes> spikes;
-    std::vector<Turret> turrets;
+
+    std::vector<Button> buttons;
 
 //Constructors/Destructors
 private:
@@ -85,6 +101,8 @@ private:
         }
     }
 
+    void clearButtons();
+
 //Class Methods
 public:
     static inline Game& instance()
@@ -100,7 +118,10 @@ public:
     static float unpausedTime();
     static void setState(State newState);
     static void flagDestruction();
+    static bool unflagDestruction();
 
+    static InputType getInputType();
+    static void cycleInputType();
     static void pause();
     static void unpause();
     static void signalGameOver();
@@ -109,38 +130,18 @@ public:
     static int getNextButtonIndex();
     static int getSelectedButtonIndex();
     static void selectButton(int index);
+    static void deselectButton(int index);
+    static Vector2 getMousePosition();
+    static Vector2 getLastMousePosition();
+    static Vector2 getLastControllerLeftStickAxis();
 
     static Level& getLevel();
     static View& getView();
     static Player& getPlayer();
 
-    template <class ... TArgs>
-    static void spawnBlob(TArgs&& ... args)
+    template <class TType, class ... TArgs>
+    static void spawn(TArgs&& ... args)
     {
-        instance().blobs.emplace_back(std::forward<TArgs>(args) ...);
-    }
-
-    template <class ... TArgs>
-    static void spawnGhostPowerup(TArgs&& ... args)
-    {
-        instance().ghostPowerups.emplace_back(std::forward<TArgs>(args) ...);
-    }
-
-    template <class ... TArgs>
-    static void spawnVoidPowerup(TArgs&& ... args)
-    {
-        instance().voidPowerups.emplace_back(std::forward<TArgs>(args) ...);
-    }
-
-    template <class ... TArgs>
-    static void spawnSpikes(TArgs&& ... args)
-    {
-        instance().spikes.emplace_back(std::forward<TArgs>(args) ...);
-    }
-
-    template <class ... TArgs>
-    static void spawnTurret(TArgs&& ... args)
-    {
-        instance().turrets.emplace_back(std::forward<TArgs>(args) ...);
+        instance().objects.getContainer<TType>().emplace_back(std::forward<TArgs>(args) ...);
     }
 };
