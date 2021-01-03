@@ -11,16 +11,18 @@ public:
     Rectangle shape;
     std::string label;
     int fontSize;
-    std::function<void()> selectAction;
+    std::function<void()> action;
     int index;
     bool selected;
+    bool mouseOnly;
 
 public:
     Button(
         Rectangle shape,
         const std::string& label,
         int fontSize,
-        const std::function<void()>& selectAction);
+        const std::function<void()>& action,
+        bool mouseOnly = false);
 
 public:
     void update();

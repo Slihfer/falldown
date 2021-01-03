@@ -84,7 +84,7 @@ void Player::update()
         coyoteTime.start();
 
         if (velocity.x == 0)
-            setState(State::Idle);
+            setState(State::Turn);
         else
             setState(State::Walk);
     }
@@ -106,7 +106,7 @@ void Player::draw()
     else
         switch (getState())
         {
-        case State::Idle:
+        case State::Turn:
             DrawSpriteWorld(Animation::get("anim_PlayerIdle").getCurrentSprite(getStateTime().elapsed(), true), position, looksLeft);
             break;
         case State::Walk:

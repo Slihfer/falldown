@@ -4,10 +4,12 @@
 
 #include "core/Game.h"
 
+#define MOUSE_INDICATOR 1
+
 constexpr float CONTROLLER_DEADZONE = 0.2f;
 constexpr float MOUSE_CONTROL_AREA = 0.4f;
-constexpr Color MOUSE_CONTROL_AREA_LEFT_COLOR{ 255, 63, 63, 40 };
-constexpr Color MOUSE_CONTROL_AREA_RIGHT_COLOR{ 63, 63, 255, 40 };
+constexpr Color MOUSE_CONTROL_AREA_HIGHLIGHT{ 255, 255, 255, 19 };
+constexpr Color MOUSE_CONTROL_SEPARATOR{ 255, 255, 255, 127 };
 
 Rectangle GetLeftMouseControlArea();
 Rectangle GetRightMouseControlArea();
@@ -46,68 +48,55 @@ inline bool IsInputInactive()
 template <>
 inline bool IsInputStarted<InputAction::Left>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyPressed(KEY_A) ||
-            IsKeyPressed(KEY_LEFT);
-    case InputType::Mouse:
-        return
+    return
+    //Keyboard
+        IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT) ||
+    //Gamepad
+        (
+            Game::getLastControllerLeftStickAxis().x >= -CONTROLLER_DEADZONE &&
+            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) < -CONTROLLER_DEADZONE
+        ) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT) ||
+    //Mouse
+        (
+            Game::isFullyMouseControllable() &&
             !CheckCollisionPointRec(Game::getLastMousePosition(), GetLeftMouseControlArea()) &&
-            CheckCollisionPointRec(Game::getMousePosition(), GetLeftMouseControlArea());
-    case InputType::Controller:
-        return
-            (Game::getLastControllerLeftStickAxis().x >= -CONTROLLER_DEADZONE &&
-            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) < -CONTROLLER_DEADZONE) ||
-            IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT);
-    }
-    
-    return false;
+            CheckCollisionPointRec(Game::getMousePosition(), GetLeftMouseControlArea())
+        );
 }
 
 template <>
 inline bool IsInputEnded<InputAction::Left>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyReleased(KEY_A) ||
-            IsKeyReleased(KEY_LEFT);
-    case InputType::Mouse:
-        return
+    return
+    //Keyboard
+        IsKeyReleased(KEY_A) || IsKeyReleased(KEY_LEFT) ||
+    //Gamepad
+        (
+            Game::getLastControllerLeftStickAxis().x < -CONTROLLER_DEADZONE &&
+            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) >= -CONTROLLER_DEADZONE
+        ) || IsGamepadButtonReleased(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT) ||
+    //Mouse
+        (
+            Game::isFullyMouseControllable() &&
             CheckCollisionPointRec(Game::getLastMousePosition(), GetLeftMouseControlArea()) &&
-            !CheckCollisionPointRec(Game::getMousePosition(), GetLeftMouseControlArea());
-    case InputType::Controller:
-        return
-            (Game::getLastControllerLeftStickAxis().x < -CONTROLLER_DEADZONE &&
-            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) >= -CONTROLLER_DEADZONE) ||
-            IsGamepadButtonReleased(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT);
-    }
-
-    return false;
+            !CheckCollisionPointRec(Game::getMousePosition(), GetLeftMouseControlArea())
+        );
 }
 
 template <>
 inline bool IsInputActive<InputAction::Left>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyDown(KEY_A) ||
-            IsKeyDown(KEY_LEFT);
-
-    case InputType::Mouse:
-        return CheckCollisionPointRec(Game::getMousePosition(), GetLeftMouseControlArea());
-    case InputType::Controller:
-        return
-            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) < -CONTROLLER_DEADZONE ||
-            IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT);
-    }
-
-    return false;
+    return
+        //Keyboard
+        IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT) ||
+        //Gamepad
+        GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) < -CONTROLLER_DEADZONE ||
+        IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT) ||
+        //Mouse
+        (
+            Game::isFullyMouseControllable() &&
+            CheckCollisionPointRec(Game::getMousePosition(), GetLeftMouseControlArea())
+            );
 }
 
 
@@ -116,67 +105,55 @@ inline bool IsInputActive<InputAction::Left>()
 template <>
 inline bool IsInputStarted<InputAction::Right>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyPressed(KEY_D) ||
-            IsKeyPressed(KEY_RIGHT);
-    case InputType::Mouse:
-        return
+    return
+    //Keyboard
+        IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT) ||
+    //Gamepad
+        (
+            Game::getLastControllerLeftStickAxis().x <= CONTROLLER_DEADZONE &&
+            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) > CONTROLLER_DEADZONE
+        ) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT) ||
+    //Mouse
+        (
+            Game::isFullyMouseControllable() &&
             !CheckCollisionPointRec(Game::getLastMousePosition(), GetRightMouseControlArea()) &&
-            CheckCollisionPointRec(Game::getMousePosition(), GetRightMouseControlArea());
-    case InputType::Controller:
-        return
-            (Game::getLastControllerLeftStickAxis().x <= CONTROLLER_DEADZONE &&
-            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) > CONTROLLER_DEADZONE) ||
-            IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT);
-    }
-
-    return false;
+            CheckCollisionPointRec(Game::getMousePosition(), GetRightMouseControlArea())
+        );
 }
 
 template <>
 inline bool IsInputEnded<InputAction::Right>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyReleased(KEY_D) ||
-            IsKeyReleased(KEY_RIGHT);
-    case InputType::Mouse:
-        return
+    return
+    //Keyboard
+        IsKeyReleased(KEY_D) || IsKeyReleased(KEY_RIGHT) ||
+    //Gamepad
+        (
+            Game::getLastControllerLeftStickAxis().x > CONTROLLER_DEADZONE &&
+            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) <= CONTROLLER_DEADZONE
+        ) || IsGamepadButtonReleased(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT) ||
+    //Mouse
+        (
+            Game::isFullyMouseControllable() &&
             CheckCollisionPointRec(Game::getLastMousePosition(), GetRightMouseControlArea()) &&
-            !CheckCollisionPointRec(Game::getMousePosition(), GetRightMouseControlArea());
-    case InputType::Controller:
-        return
-            (Game::getLastControllerLeftStickAxis().x > CONTROLLER_DEADZONE &&
-            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) <= CONTROLLER_DEADZONE) ||
-            IsGamepadButtonReleased(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT);
-    }
-
-    return false;
+            !CheckCollisionPointRec(Game::getMousePosition(), GetRightMouseControlArea())
+        );
 }
 
 template <>
 inline bool IsInputActive<InputAction::Right>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyDown(KEY_D) ||
-            IsKeyDown(KEY_RIGHT);
-    case InputType::Mouse:
-        return CheckCollisionPointRec(Game::getMousePosition(), GetRightMouseControlArea());
-    case InputType::Controller:
-        return
-            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) > CONTROLLER_DEADZONE ||
-            IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT);
-    }
-
-    return false;
+    return
+    //Keyboard
+        IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT) ||
+    //Gamepad
+        GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) > CONTROLLER_DEADZONE ||
+        IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT) ||
+    //Mouse
+        (
+            Game::isFullyMouseControllable() &&
+            CheckCollisionPointRec(Game::getMousePosition(), GetRightMouseControlArea())
+        );
 }
 
 
@@ -185,63 +162,38 @@ inline bool IsInputActive<InputAction::Right>()
 template <>
 inline bool IsInputStarted<InputAction::Up>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyPressed(KEY_W) ||
-            IsKeyPressed(KEY_UP);
-    case InputType::Mouse:
-        break;
-    case InputType::Controller:
-        return
-            (Game::getLastControllerLeftStickAxis().y >= -CONTROLLER_DEADZONE &&
-            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y) < -CONTROLLER_DEADZONE) ||
-            IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_UP);
-    }
-
-    return false;
+    return
+    //Keyboard
+        IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP) ||
+    //Gamepad
+        (
+            Game::getLastControllerLeftStickAxis().y >= -CONTROLLER_DEADZONE &&
+            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y) < -CONTROLLER_DEADZONE
+        ) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_UP);
 }
 
 template <>
 inline bool IsInputEnded<InputAction::Up>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyReleased(KEY_W) ||
-            IsKeyReleased(KEY_UP);
-    case InputType::Mouse:
-        break;
-    case InputType::Controller:
-        return
-            (Game::getLastControllerLeftStickAxis().y < -CONTROLLER_DEADZONE &&
-            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y) >= -CONTROLLER_DEADZONE) ||
-            IsGamepadButtonReleased(0, GAMEPAD_BUTTON_LEFT_FACE_UP);
-    }
-
-    return false;
+    return
+    //Keyboard
+        IsKeyReleased(KEY_W) || IsKeyReleased(KEY_UP) ||
+    //Gamepad
+        (
+            Game::getLastControllerLeftStickAxis().y < -CONTROLLER_DEADZONE &&
+            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y) >= -CONTROLLER_DEADZONE
+        ) || IsGamepadButtonReleased(0, GAMEPAD_BUTTON_LEFT_FACE_UP);
 }
 
 template <>
 inline bool IsInputActive<InputAction::Up>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyDown(KEY_W) ||
-            IsKeyDown(KEY_UP);
-    case InputType::Mouse:
-        break;
-    case InputType::Controller:
-        return
-            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y) < -CONTROLLER_DEADZONE ||
-            IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_UP);
-    }
-
-    return false;
+    return
+    //Keyboard
+        IsKeyDown(KEY_W) || IsKeyDown(KEY_UP) ||
+    //Gamepad
+        GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y) < -CONTROLLER_DEADZONE ||
+        IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_UP);
 }
 
 
@@ -250,63 +202,38 @@ inline bool IsInputActive<InputAction::Up>()
 template <>
 inline bool IsInputStarted<InputAction::Down>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyPressed(KEY_S) ||
-            IsKeyPressed(KEY_DOWN);
-    case InputType::Mouse:
-        break;
-    case InputType::Controller:
-        return
-            (Game::getLastControllerLeftStickAxis().y <= CONTROLLER_DEADZONE &&
-            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y) > CONTROLLER_DEADZONE) ||
-            IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN);
-    }
-
-    return false;
+    return
+    //Keyboard
+        IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN) ||
+    //Gamepad
+        (
+            Game::getLastControllerLeftStickAxis().y <= CONTROLLER_DEADZONE &&
+            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y) > CONTROLLER_DEADZONE
+        ) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN);
 }
 
 template <>
 inline bool IsInputEnded<InputAction::Down>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyReleased(KEY_S) ||
-            IsKeyReleased(KEY_DOWN);
-    case InputType::Mouse:
-        break;
-    case InputType::Controller:
-        return
-            (Game::getLastControllerLeftStickAxis().y > CONTROLLER_DEADZONE &&
-            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y) <= CONTROLLER_DEADZONE) ||
-            IsGamepadButtonReleased(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN);
-    }
-
-    return false;
+    return
+    //Keyboard
+        IsKeyReleased(KEY_S) || IsKeyReleased(KEY_DOWN) ||
+    //Gamepad
+        (
+            Game::getLastControllerLeftStickAxis().y > CONTROLLER_DEADZONE &&
+            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y) <= CONTROLLER_DEADZONE
+        ) || IsGamepadButtonReleased(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN);
 }
 
 template <>
 inline bool IsInputActive<InputAction::Down>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyDown(KEY_S) ||
-            IsKeyDown(KEY_DOWN);
-    case InputType::Mouse:
-        break;
-    case InputType::Controller:
-        return
-            GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y) > CONTROLLER_DEADZONE ||
-            IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN);
-    }
-
-    return false;
+    return
+    //Keyboard
+        IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN) ||
+    //Gamepad
+        GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y) > CONTROLLER_DEADZONE ||
+        IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN);
 }
 
 
@@ -315,55 +242,37 @@ inline bool IsInputActive<InputAction::Down>()
 template <>
 inline bool IsInputStarted<InputAction::Jump>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyPressed(KEY_K) ||
-            IsKeyPressed(KEY_SPACE);
-    case InputType::Mouse:
-        return IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
-    case InputType::Controller:
-        return IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
-    }
-
-    return false;
+    return
+    //Keyboard
+        IsKeyPressed(KEY_K) || IsKeyPressed(KEY_SPACE) ||
+    //Gamepad
+        IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) ||
+    //Mouse
+        (Game::isFullyMouseControllable() && IsMouseButtonPressed(MOUSE_LEFT_BUTTON));
 }
 
 template <>
 inline bool IsInputEnded<InputAction::Jump>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyReleased(KEY_K) ||
-            IsKeyReleased(KEY_SPACE);
-    case InputType::Mouse:
-        return IsMouseButtonReleased(MOUSE_LEFT_BUTTON);
-    case InputType::Controller:
-        return IsGamepadButtonReleased(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
-    }
-
-    return false;
+    return
+    //Keyboard
+        IsKeyReleased(KEY_K) || IsKeyReleased(KEY_SPACE) ||
+    //Gamepad
+        IsGamepadButtonReleased(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) ||
+    //Mouse
+        (Game::isFullyMouseControllable() && IsMouseButtonReleased(MOUSE_LEFT_BUTTON));
 }
 
 template <>
 inline bool IsInputActive<InputAction::Jump>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyDown(KEY_K) ||
-            IsKeyDown(KEY_SPACE);
-    case InputType::Mouse:
-        return IsMouseButtonDown(MOUSE_LEFT_BUTTON);
-    case InputType::Controller:
-        return IsGamepadButtonDown(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
-    }
-
-    return false;
+    return
+        //Keyboard
+        IsKeyDown(KEY_K) || IsKeyDown(KEY_SPACE) ||
+        //Gamepad
+        IsGamepadButtonDown(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) ||
+        //Mouse
+        (Game::isFullyMouseControllable() && IsMouseButtonDown(MOUSE_LEFT_BUTTON));
 }
 
 
@@ -372,54 +281,31 @@ inline bool IsInputActive<InputAction::Jump>()
 template <>
 inline bool IsInputStarted<InputAction::Select>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyPressed(KEY_K) ||
-            IsKeyPressed(KEY_ENTER);
-    case InputType::Mouse:
-        return IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
-    case InputType::Controller:
-        return IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
-    }
-
-    return false;
+    return
+    //Keyboard
+        IsKeyPressed(KEY_K) || IsKeyPressed(KEY_ENTER) ||
+    //Gamepad
+        IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
 }
 
 template <>
 inline bool IsInputEnded<InputAction::Select>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyReleased(KEY_K) ||
-            IsKeyReleased(KEY_ENTER);
-    case InputType::Mouse:
-        return IsMouseButtonReleased(MOUSE_LEFT_BUTTON);
-    case InputType::Controller:
-        return IsGamepadButtonReleased(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
-    }
-
-    return false;
+    return
+    //Keyboard
+        IsKeyReleased(KEY_K) || IsKeyReleased(KEY_ENTER) ||
+    //Gamepad
+        IsGamepadButtonReleased(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
 }
 
 template <>
 inline bool IsInputActive<InputAction::Select>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyDown(KEY_K) ||
-            IsKeyDown(KEY_ENTER);
-    case InputType::Mouse:
-        return IsMouseButtonDown(MOUSE_LEFT_BUTTON);
-    case InputType::Controller:
-        return IsGamepadButtonDown(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
-    }
-        return false;
+    return
+    //Keyboard
+        IsKeyDown(KEY_K) || IsKeyDown(KEY_ENTER) ||
+    //Gamepad
+        IsGamepadButtonDown(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
 }
 
 
@@ -428,50 +314,35 @@ inline bool IsInputActive<InputAction::Select>()
 template <>
 inline bool IsInputStarted<InputAction::Menu>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyPressed(KEY_ESCAPE);
-    case InputType::Mouse:
-        break;
-    case InputType::Controller:
-        return IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_RIGHT);
-    }
-
-    return false;
+    return
+    //Keyboard
+        IsKeyPressed(KEY_ESCAPE) ||
+    //Gamepad
+        IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE) ||
+        IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_LEFT) ||
+        IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_RIGHT);
 }
 
 template <>
 inline bool IsInputEnded<InputAction::Menu>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyReleased(KEY_ESCAPE);
-    case InputType::Mouse:
-        break;
-    case InputType::Controller:
-        return IsGamepadButtonReleased(0, GAMEPAD_BUTTON_MIDDLE_RIGHT);
-    }
-    
-    return false;
+    return
+    //Keyboard
+        IsKeyReleased(KEY_ESCAPE) ||
+    //Gamepad
+        IsGamepadButtonReleased(0, GAMEPAD_BUTTON_MIDDLE) ||
+        IsGamepadButtonReleased(0, GAMEPAD_BUTTON_MIDDLE_LEFT) ||
+        IsGamepadButtonReleased(0, GAMEPAD_BUTTON_MIDDLE_RIGHT);
 }
 
 template <>
 inline bool IsInputActive<InputAction::Menu>()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Keyboard:
-        return
-            IsKeyDown(KEY_ESCAPE);
-    case InputType::Mouse:
-        break;
-    case InputType::Controller:
-        return IsGamepadButtonDown(0, GAMEPAD_BUTTON_MIDDLE_RIGHT);
-    }
-    
-    return false;
+    return
+    //Keyboard
+        IsKeyDown(KEY_ESCAPE) ||
+    //Gamepad
+        IsGamepadButtonDown(0, GAMEPAD_BUTTON_MIDDLE) ||
+        IsGamepadButtonDown(0, GAMEPAD_BUTTON_MIDDLE_LEFT) ||
+        IsGamepadButtonDown(0, GAMEPAD_BUTTON_MIDDLE_RIGHT);
 }

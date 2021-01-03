@@ -22,8 +22,8 @@ void VoidPowerup::update()
     {
     case State::Spawn:
         if (getStateTime().elapsed() >= Animation::get("anim_VoidPowerupSpawn").getDuration())
-            setState(State::Idle);
-    case State::Idle:
+            setState(State::Turn);
+    case State::Turn:
         if (Player& player = Game::getPlayer(); CheckCollisionRecs(player.getCollider(), getCollider()))
         {
             player.voidPowerup();
@@ -44,7 +44,7 @@ void VoidPowerup::draw()
         DrawSpriteWorld(Animation::get("anim_VoidPowerupSpawnBG").getCurrentSprite(getStateTime().elapsed()), position, false, BLEND_ADDITIVE);
         DrawSpriteWorld(Animation::get("anim_VoidPowerupSpawn").getCurrentSprite(getStateTime().elapsed()), position);
         break;
-    case State::Idle:
+    case State::Turn:
         DrawSpriteWorld(Animation::get("anim_VoidPowerupIdleBG").getCurrentSprite(getStateTime().elapsed(), true), position, false, BLEND_ADDITIVE);
         DrawSpriteWorld(Animation::get("anim_VoidPowerupIdle").getCurrentSprite(getStateTime().elapsed(), true), position);
         break;

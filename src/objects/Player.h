@@ -9,7 +9,7 @@
 
 enum class PlayerState
 {
-    Idle,
+    Turn,
     Walk,
     Air,
 };

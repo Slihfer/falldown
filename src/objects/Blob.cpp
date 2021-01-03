@@ -37,7 +37,7 @@ void Blob::update()
         if (!Game::getLevel().collides(x + COLLIDER.x + (looksLeft ? -EDGE_SENSE : COLLIDER.width + EDGE_SENSE), y + TILE_DIMENSIONS) ||
             Game::getLevel().collides(x + COLLIDER.x + (looksLeft ? -EDGE_SENSE : COLLIDER.width + EDGE_SENSE), y + COLLIDER.y))
         {
-            setState(State::Idle);
+            setState(State::Turn);
             velocity.x = 0;
         }
         else
@@ -47,8 +47,8 @@ void Blob::update()
 
         break;
 
-    case State::Idle:
-        if (getStateTime().elapsed() >= Animation::get("anim_BlobIdle").getDuration())
+    case State::Turn:
+        if (getStateTime().elapsed() >= Animation::get("anim_BlobTurn").getDuration())
         {
             setState(State::Walk);
             looksLeft = !looksLeft;
@@ -71,8 +71,8 @@ void Blob::draw()
     case State::Spawn:
         DrawSpriteWorld(Animation::get("anim_BlobSpawn").getCurrentSprite(getStateTime().elapsed()), position, looksLeft);
         break;
-    case State::Idle:
-        DrawSpriteWorld(Animation::get("anim_BlobIdle").getCurrentSprite(getStateTime().elapsed(), true), position, looksLeft);
+    case State::Turn:
+        DrawSpriteWorld(Animation::get("anim_BlobTurn").getCurrentSprite(getStateTime().elapsed(), true), position, looksLeft);
         break;
     case State::Walk:
         DrawSpriteWorld(Animation::get("anim_BlobWalk").getCurrentSprite(getStateTime().elapsed(), true), position, looksLeft);

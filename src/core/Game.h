@@ -13,20 +13,16 @@
 #include "objects/Turret.h"
 #include "util/ObjectContainer.h"
 
+constexpr int TARGET_FPS = 60;
+constexpr float MAX_FRAME_TIME = 0.05f;
+constexpr float COUNTDOWN = 3;
+
 enum class GameState
 {
     None,
     MainMenu,
     Credits,
     Playing
-};
-
-enum class InputType
-{
-    Keyboard,
-    Mouse,
-    Controller,
-    Count
 };
 
 class Game : public StateObject<GameState>
@@ -37,7 +33,6 @@ public:
 
 //Members
 private:
-    InputType inputType;
     bool shouldExit;
     float frameTime;
     float runTime;
@@ -45,7 +40,9 @@ private:
     bool allowDestruction;
     bool destructionFlag;
     bool paused;
+    bool shouldQueueUnpause;
     bool gameOver;
+    bool fullMouseControl;
     int selectedButton;
     Vector2 mousePosition;
     Vector2 lastMousePosition;
@@ -119,18 +116,18 @@ public:
     static void setState(State newState);
     static void flagDestruction();
     static bool unflagDestruction();
-
-    static InputType getInputType();
-    static void cycleInputType();
     static void pause();
     static void unpause();
+    static void queueUnpause();
+
     static void signalGameOver();
     static void cycleSelectedButtonUp();
     static void cycleSelectedButtonDown();
     static int getNextButtonIndex();
     static int getSelectedButtonIndex();
     static void selectButton(int index);
-    static void deselectButton(int index);
+    static void toggleMouseControl();
+    static bool isFullyMouseControllable();
     static Vector2 getMousePosition();
     static Vector2 getLastMousePosition();
     static Vector2 getLastControllerLeftStickAxis();

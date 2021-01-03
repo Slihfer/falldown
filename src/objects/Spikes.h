@@ -7,7 +7,7 @@
 
 enum class SpikesState
 {
-    Idle,
+    Turn,
     Poke,
     Out,
     Retract
@@ -32,7 +32,7 @@ public:
     void draw();
 
 public:
-    static constexpr Rectangle COLLIDER{ 1, 0, 6, 8 };
+    static constexpr Rectangle COLLIDER{ 1, 2, 6, 6 };
     static constexpr float ACTIVATION_DISTANCE = 24.0f;
     static constexpr float COOLDOWN = 0.6f;
     static constexpr float OUT_TIME = 0.8f;

@@ -2,10 +2,12 @@
 
 //TODO move stuff
 
+constexpr int ZOOM = 5;
 constexpr int TILE_DIMENSIONS = 8;
 constexpr int HALF_TILE_DIMENSIONS = TILE_DIMENSIONS / 2;
 constexpr int BACKGROUND_TILE_DIMENSIONS = TILE_DIMENSIONS * 4;
-constexpr int ZOOM = 5;
+constexpr int ZOOMED_TILE_DIMENSIONS = TILE_DIMENSIONS * ZOOM;
+constexpr int ZOOMED_HALF_TILE_DIMENSIONS = HALF_TILE_DIMENSIONS * ZOOM;
 constexpr int TILES_X = 16;
 constexpr int TILES_Y = 24;
 constexpr int Y_UPPER_OFFSET = 4;
@@ -20,7 +22,5 @@ constexpr int LEVEL_HEIGHT = TILE_DIMENSIONS * TILES_Y;
 constexpr Vector2 LEVEL_CENTER{ LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2 };
 constexpr int WINDOW_WIDTH = LEVEL_WIDTH * ZOOM;
 constexpr int WINDOW_HEIGHT = LEVEL_HEIGHT * ZOOM;
+constexpr Vector2 WINDOW_CENTER{ WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 };
 constexpr int VIEW_MAX_PLAYER_DISTANCE = LEVEL_HEIGHT * 2 / 3;
-
-constexpr int TARGET_FPS = 60;
-constexpr float MAX_FRAME_TIME = 0.05f;

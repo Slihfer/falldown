@@ -11,13 +11,13 @@
 #include "draw/TextureInfo.h"
 #include "draw/Sprite.h"
 #include "draw/Animation.h"
+#include "draw/draw.h"
 #include "screens/Credits.h"
 #include "screens/GameOver.h"
 #include "screens/MenuBackground.h"
 
 Game::Game() :
     StateObject(State::None, 0),
-    inputType(InputType::Controller),
     shouldExit(false),
     frameTime(0),
     runTime(0),
@@ -25,7 +25,9 @@ Game::Game() :
     allowDestruction(false),
     destructionFlag(false),
     paused(false),
+    shouldQueueUnpause(false),
     gameOver(false),
+    fullMouseControl(false),
     selectedButton(0),
     objects(),
     mousePosition{ -1.0f, -1.0f },
@@ -37,6 +39,8 @@ Game::Game() :
     SetExitKey(0);
 
     srand(std::chrono::system_clock::now().time_since_epoch().count());
+
+    SetMousePosition(-1, -1);
 }
 
 Game::~Game()
@@ -157,7 +161,7 @@ void Game::loadAnimations()
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 16, 0, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 24, 0, 8, 8 } }, 0.1f });
 
-    Animation::load("anim_BlobIdle",
+    Animation::load("anim_BlobTurn",
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 24, 0, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 0, 8, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Blob").texture, { 24, 8, 8, 8 } }, 0.1f });
@@ -286,24 +290,39 @@ void Game::update()
     case State::MainMenu:
         break;
     case State::Credits:
+        if (IsInputStarted<InputAction::Menu>())
+            setState(State::MainMenu);
+
         break;
     case State::Playing:
-        if (!gameOver && IsInputStarted<InputAction::Menu>())
-            if (paused)
-                unpause();
-            else
-                pause();
-
-        if (!(paused || gameOver))
+        if (getStateTime().elapsed() >= COUNTDOWN)
         {
-            level->update();
-            view->update();
-            player->update();
-            objects.update();
+            if (fullMouseControl && !buttons.size())
+                buttons.emplace_back(
+                    Rectangle{ TILES_X / 2, 1, floor((WINDOW_WIDTH * (1 - 2 * MOUSE_CONTROL_AREA)) / ZOOMED_TILE_DIMENSIONS), 2 },
+                    "Pause",
+                    5,
+                    [] { Game::pause(); },
+                    true);
+
+            if (!gameOver && IsInputStarted<InputAction::Menu>())
+            {
+                if (paused) queueUnpause();
+                else pause();
+            }
+            else if (!paused && !gameOver)
+            {
+                level->update();
+                view->update();
+                player->update();
+                objects.update();
+            }
         }
 
         break;
     }
+
+    if (shouldQueueUnpause && paused) unpause();
 
     allowDestruction = false;
 }
@@ -311,6 +330,7 @@ void Game::update()
 void Game::draw()
 {
     BeginDrawing();
+
     ClearBackground(BLACK);
 
     switch (getState())
@@ -328,12 +348,16 @@ void Game::draw()
         objects.draw();
         player->draw();
 
+        if (fullMouseControl)
+            DrawMouseControlAreas();
+
         if (gameOver)
             DrawGameOverScreen();
         else if (paused)
             DrawUIBox({ TILES_X / 2, TILES_Y / 2, TILES_X - 6, TILES_Y - 6 });
-        else if (inputType == InputType::Mouse)
-            DrawMouseControlAreas();
+
+        if (getStateTime().elapsed() < COUNTDOWN)
+            DrawInt(ceil(COUNTDOWN - getStateTime().elapsed()), WINDOW_CENTER.x, WINDOW_CENTER.y, 10 * ZOOM);
 
         break;
     }
@@ -346,7 +370,7 @@ void Game::draw()
 void Game::clearButtons()
 {
     buttons.clear();
-    selectedButton = inputType == InputType::Mouse ? -1 : 0;
+    selectedButton = 0;
 }
 
 void Game::run()
@@ -415,7 +439,7 @@ void Game::setState(State newState)
         game.view.release();
         game.player.release();
         game.objects.clear();
-        unpause();
+        game.unpause();
         game.gameOver = false;
         break;
     }
@@ -425,6 +449,7 @@ void Game::setState(State newState)
     switch (newState)
     {
     case State::MainMenu:
+    {
         game.buttons.emplace_back(
             Rectangle{ TILES_X / 2, TILES_Y * 0.4f, TILES_X / 2, TILES_Y / 10 },
             "Play",
@@ -437,14 +462,28 @@ void Game::setState(State newState)
             5,
             []{ Game::setState(State::Credits); }
         );
+
+        int index = game.buttons.size();
         game.buttons.emplace_back(
             Rectangle{ TILES_X / 2, TILES_Y * 0.6f, TILES_X / 2, TILES_Y / 10 },
+            game.fullMouseControl ? "Disable Mouse Controls" : "Enable Mouse Controls",
+            5,
+            [&game, index]
+            {
+                Game::toggleMouseControl();
+                game.buttons[index].label = game.fullMouseControl ? "Disable Mouse Controls" : "Enable Mouse Controls";
+            }
+        );
+
+        game.buttons.emplace_back(
+            Rectangle{ TILES_X / 2, TILES_Y * 0.7f, TILES_X / 2, TILES_Y / 10 },
             "Exit",
             5,
             []{ Game::exit(); }
         );
 
         break;
+    }
     case State::Credits:
         game.buttons.emplace_back(
             Rectangle{ TILES_X / 2, TILES_Y * 0.8f, TILES_X / 2, TILES_Y / 10 },
@@ -457,13 +496,6 @@ void Game::setState(State newState)
         game.level = std::make_unique<Level>();
         game.player = std::make_unique<Player>();
         game.view = std::make_unique<View>();
-
-        if (getInputType() == InputType::Mouse)
-            game.buttons.emplace_back(
-                Rectangle{ TILES_X / 2, TILES_Y * 0.1f, TILES_X / 2, TILES_Y / 10 },
-                "Pause",
-                5,
-                [] { Game::pause(); });
 
         break;
     }
@@ -492,16 +524,9 @@ bool Game::unflagDestruction()
     return false;
 }
 
-InputType Game::getInputType()
+void Game::queueUnpause()
 {
-    return instance().inputType;
-}
-
-void Game::cycleInputType()
-{
-    Game& game = instance();
-
-    game.inputType = static_cast<InputType>((static_cast<int>(game.inputType) + 1) % static_cast<int>(InputType::Count));
+    instance().shouldQueueUnpause = true;
 }
 
 void Game::pause()
@@ -515,7 +540,7 @@ void Game::pause()
         Rectangle{ TILES_X / 2, TILES_Y * 0.4f, TILES_X / 2, TILES_Y / 10 },
         "Resume",
         5,
-        [] { Game::unpause(); }
+        [] { Game::queueUnpause(); }
     );
     game.buttons.emplace_back(
         Rectangle{ TILES_X / 2, TILES_Y * 0.6f, TILES_X / 2, TILES_Y / 10 },
@@ -530,14 +555,16 @@ void Game::unpause()
     Game& game = instance();
 
     game.paused = false;
+    game.shouldQueueUnpause = false;
     game.clearButtons();
 
-    if (getInputType() == InputType::Mouse)
+    if (game.fullMouseControl)
         game.buttons.emplace_back(
-            Rectangle{ TILES_X / 2, TILES_Y * 0.1f, TILES_X / 2, TILES_Y / 10 },
+            Rectangle{ TILES_X / 2, 1, floor((WINDOW_WIDTH * (1 - 2 * MOUSE_CONTROL_AREA)) / ZOOMED_TILE_DIMENSIONS), 2 },
             "Pause",
             5,
-            [] { Game::pause(); });
+            [] { Game::pause(); },
+            true);
 }
 
 void Game::signalGameOver()
@@ -589,16 +616,16 @@ void Game::selectButton(int index)
     game.buttons[game.selectedButton = index].selected = true;
 }
 
-void Game::deselectButton(int index)
+void Game::toggleMouseControl()
 {
     Game& game = instance();
 
-    if (index != game.selectedButton)
-        return;
+    game.fullMouseControl = !game.fullMouseControl;
+}
 
-    game.buttons[game.selectedButton].selected = false;
-
-    game.selectedButton = -1;
+bool Game::isFullyMouseControllable()
+{
+    return instance().fullMouseControl;
 }
 
 Vector2 Game::getMousePosition()

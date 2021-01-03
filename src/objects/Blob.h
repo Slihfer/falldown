@@ -10,7 +10,7 @@
 enum class BlobState
 {
     Spawn,
-    Idle,
+    Turn,
     Walk
 };
 

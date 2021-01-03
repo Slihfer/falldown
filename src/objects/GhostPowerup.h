@@ -9,7 +9,7 @@
 enum class GhostPowerupState
 {
     Spawn,
-    Idle,
+    Turn,
     Dissipate
 };
 

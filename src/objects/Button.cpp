@@ -9,40 +9,34 @@ Button::Button(
     Rectangle shape,
     const std::string& label,
     int fontSize,
-    const std::function<void()>& selectAction) :
+    const std::function<void()>& action,
+    bool mouseOnly) :
     shape(shape),
     label(label),
     fontSize(fontSize),
-    selectAction(selectAction),
+    action(action),
     index(Game::getNextButtonIndex()),
-    selected(Game::getSelectedButtonIndex() == index) {}
+    selected(Game::getSelectedButtonIndex() == index),
+    mouseOnly(mouseOnly) {}
 
 void Button::update()
 {
-    switch (Game::getInputType())
-    {
-    case InputType::Mouse:
-        if (CheckCollisionPointRec(
+    if (mouseOnly)
+        selected = false;
+
+    if (!mouseOnly && selected && IsInputStarted<InputAction::Select>())
+        action();
+    else if (
+        CheckCollisionPointRec(
             Game::getMousePosition(),
             AssembleRectangle(
                 (GetRectanglePosition(shape) - 0.5f * GetRectangleDimensions(shape)) * TILE_DIMENSIONS * ZOOM,
                 GetRectangleDimensions(shape) * ZOOM * TILE_DIMENSIONS)))
-        {
-            Game::selectButton(index);
+    {
+        Game::selectButton(index);
 
-            if (IsInputStarted<InputAction::Select>())
-                selectAction();
-        }
-        else
-        {
-            Game::deselectButton(index);
-        }
-
-        break;
-    case InputType::Keyboard:
-    case InputType::Controller:
-        if (selected && IsInputStarted<InputAction::Select>())
-            selectAction();
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            action();
     }
 }
 
