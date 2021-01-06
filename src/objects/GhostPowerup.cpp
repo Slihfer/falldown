@@ -22,8 +22,8 @@ void GhostPowerup::update()
     {
     case State::Spawn:
         if (getStateTime().elapsed() >= Animation::get("anim_GhostPowerupSpawn").getDuration())
-            setState(State::Turn);
-    case State::Turn:
+            setState(State::Idle);
+    case State::Idle:
         if (Player& player = Game::getPlayer(); CheckCollisionRecs(player.getCollider(), getCollider()))
         {
             player.ghostPowerup();
@@ -41,7 +41,7 @@ void GhostPowerup::draw()
     switch (getState())
     {
     case State::Spawn: DrawSpriteWorld(Animation::get("anim_GhostPowerupSpawn").getCurrentSprite(getStateTime().elapsed()), position, false, BLEND_ADDITIVE); break;
-    case State::Turn: DrawSpriteWorld(Animation::get("anim_GhostPowerupIdle").getCurrentSprite(getStateTime().elapsed(), true), position, false, BLEND_ADDITIVE); break;
+    case State::Idle: DrawSpriteWorld(Animation::get("anim_GhostPowerupIdle").getCurrentSprite(getStateTime().elapsed(), true), position, false, BLEND_ADDITIVE); break;
     case State::Dissipate: DrawSpriteWorld(Animation::get("anim_GhostPowerupDissipate").getCurrentSprite(getStateTime().elapsed()), position, false, BLEND_ADDITIVE); break;
     }
 }

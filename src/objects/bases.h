@@ -43,15 +43,22 @@ private:
     Timepoint stateTime;
 
 public:
-    StateObject(TState state, float stateTime = Timepoint::currentTime()) : state(state), stateTime(stateTime) {}
+    StateObject(TState state, bool useUnpausedTime = false) :
+        state(state), stateTime(useUnpausedTime) {}
+
+    StateObject(TState state, float startTime, bool useUnpausedTime = false) :
+        state(state), stateTime(startTime, useUnpausedTime) {}
 
     void setState(TState newState)
     {
+        state = newState;
+        stateTime.start();
+    }
+
+    void setStateIfChanged(TState newState)
+    {
         if (state != newState)
-        {
-            state = newState;
-            stateTime.start();
-        }
+            setState(newState);
     }
 
     const TState& getState()

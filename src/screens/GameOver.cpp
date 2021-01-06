@@ -39,7 +39,7 @@ void DrawGameOverScreen()
         5.0f * ZOOM,
         WHITE);
     DrawInt(
-        Game::instance().getStateTime().elapsed(),
+        Game::getDeathTime() - Game::getSpawnTime(),
         LEVEL_WIDTH * ZOOM * 0.75f - MeasureText("s", 6.0f * ZOOM),
         (LEVEL_HEIGHT * 0.4f - 3.5f) * ZOOM,
         7.0f * ZOOM,

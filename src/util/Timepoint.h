@@ -4,11 +4,14 @@ class Timepoint
 {
 protected:
     float startTime;
+    bool useUnpausedTime;
 
 public:
-    explicit Timepoint(float startTime = currentTime());
+    explicit Timepoint(bool useUnpausedTime = false);
+    explicit Timepoint(float startTime, bool useUnpausedTime = false);
     void start();
+    void makeInfinite();
     float elapsed() const;
-
-    static float currentTime();
+    float getStartTime() const;
+    float getCurrentTime() const;
 };

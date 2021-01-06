@@ -9,6 +9,7 @@
 #include "draw/draw.h"
 #include "util/rectangle.h"
 #include "screens/MenuBackground.h"
+#include "sound/SoundEffect.h"
 
 //TODO make time checking more general
 
@@ -60,6 +61,8 @@ void Player::update()
             jumpBoostStartTime.start();
             jumpBoostEndTime.start();
             setState(State::Air);
+
+            SoundEffect::playMulti("sfx_Jump");
         }
         else if (velocity.y < 0 && (jumpBoostStartTime.isOngoing() || (IsInputActive<InputAction::Jump>() && jumpBoostEndTime.isOngoing())))
         {
@@ -84,13 +87,13 @@ void Player::update()
         coyoteTime.start();
 
         if (velocity.x == 0)
-            setState(State::Turn);
+            setStateIfChanged(State::Idle);
         else
-            setState(State::Walk);
+            setStateIfChanged(State::Walk);
     }
     else
     {
-        setState(State::Air);
+        setStateIfChanged(State::Air);
     }
 }
 
@@ -106,7 +109,7 @@ void Player::draw()
     else
         switch (getState())
         {
-        case State::Turn:
+        case State::Idle:
             DrawSpriteWorld(Animation::get("anim_PlayerIdle").getCurrentSprite(getStateTime().elapsed(), true), position, looksLeft);
             break;
         case State::Walk:
@@ -151,17 +154,23 @@ void Player::damage(Vector2 knockback, float hitStun)
         hitStunTime.start(hitStun);
 
         velocity = knockback;
+
+        SoundEffect::play("sfx_Hurt");
     }
 }
 
 void Player::ghostPowerup()
 {
     invulnerabilityTime.start(GHOST_POWERUP_TIME);
+
+    SoundEffect::playMulti("sfx_GhostPickup");
 }
 
 void Player::voidPowerup()
 {
     voidPowerupTime.start();
+
+    SoundEffect::playMulti("sfx_VoidPickup");
 }
 
 bool Player::isInvulnerable()

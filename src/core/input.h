@@ -9,7 +9,7 @@
 constexpr float CONTROLLER_DEADZONE = 0.2f;
 constexpr float MOUSE_CONTROL_AREA = 0.4f;
 constexpr Color MOUSE_CONTROL_AREA_HIGHLIGHT{ 255, 255, 255, 19 };
-constexpr Color MOUSE_CONTROL_SEPARATOR{ 255, 255, 255, 127 };
+constexpr Color MOUSE_CONTROL_SEPARATOR{ 255, 255, 255, 63 };
 
 Rectangle GetLeftMouseControlArea();
 Rectangle GetRightMouseControlArea();

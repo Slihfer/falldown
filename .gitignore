@@ -1,3 +1,9 @@
+# Cakewalk
+ckwk/
+
+# rfxgen
+*.rfx
+
 # Krita
 *.png~
 *.kra

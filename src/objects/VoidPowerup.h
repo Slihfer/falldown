@@ -9,7 +9,7 @@
 enum class VoidPowerupState
 {
     Spawn,
-    Turn,
+    Idle,
     Dissipate
 };
 

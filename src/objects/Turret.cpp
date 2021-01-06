@@ -8,7 +8,7 @@
 Turret::Turret(Vector2 position, bool looksLeft) :
     PositionalObject(position),
     DirectionalObject(looksLeft),
-    StateObject(State::Turn),
+    StateObject(State::Idle),
     ColliderObject(COLLIDER),
     DestructibleObject(),
     VoidDestructibleObject(),
@@ -25,7 +25,7 @@ void Turret::update()
 
     switch (getState())
     {
-    case State::Turn:
+    case State::Idle:
         if (abs(Game::getPlayer().y - y) < ACTIVATION_DISTANCE)
             setState(State::Charge);
 
@@ -48,7 +48,7 @@ void Turret::update()
     }
     case State::Retract:
         if (getStateTime().elapsed() >= Animation::get("anim_TurretRetract").getDuration())
-            setState(State::Turn);
+            setState(State::Idle);
 
         break;
     }
@@ -58,7 +58,7 @@ void Turret::draw()
 {
     switch (getState())
     {
-        case State::Turn:
+        case State::Idle:
             DrawSpriteWorld(Sprite::get("spr_TurretIdle"), position, looksLeft);
 
             break;

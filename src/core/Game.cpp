@@ -12,31 +12,37 @@
 #include "draw/Sprite.h"
 #include "draw/Animation.h"
 #include "draw/draw.h"
+#include "sound/SoundEffect.h"
 #include "screens/Credits.h"
 #include "screens/GameOver.h"
 #include "screens/MenuBackground.h"
 
 Game::Game() :
-    StateObject(State::None, 0),
+    StateObject(State::None, 0.0f, true),
     shouldExit(false),
-    frameTime(0),
+    frameTime(TARGET_FRAME_TIME),
     runTime(0),
     unpausedRunTime(0),
     allowDestruction(false),
     destructionFlag(false),
     paused(false),
-    shouldQueueUnpause(false),
+    unpauseTime(COUNTDOWN, std::numeric_limits<float>::infinity(), true),
+    queuedState(State::None),
     gameOver(false),
     fullMouseControl(false),
     selectedButton(0),
     objects(),
     mousePosition{ -1.0f, -1.0f },
     lastMousePosition{ -1.0f, -1.0f },
-    lastControllerLeftStickAxis{}
+    lastControllerLeftStickAxis{},
+    spawnTime(std::numeric_limits<float>::infinity()),
+    deathTime(std::numeric_limits<float>::infinity())
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "falldown");
     SetTargetFPS(TARGET_FPS);
     SetExitKey(0);
+
+    InitAudioDevice();
 
     srand(std::chrono::system_clock::now().time_since_epoch().count());
 
@@ -268,13 +274,30 @@ void Game::loadAnimations()
         Animation::Frame{ { TextureInfo::get("tex_Turret").texture, { 24, 32, 8, 8 } }, 0.05f });
 }
 
-void Game::initObjects()
+void Game::loadSoundEffects()
+{
+    SoundEffect::load("music_Main", FROM_MUSIC_FOLDER("bg_music.wav"));
+
+    SoundEffect::load("sfx_ButtonCycle", FROM_SFX_FOLDER("button_cycle.wav"));
+    SoundEffect::load("sfx_Accept", FROM_SFX_FOLDER("accept.wav"));
+    SoundEffect::load("sfx_BlobJump", FROM_SFX_FOLDER("blob_jump.wav"));
+    SoundEffect::load("sfx_Jump", FROM_SFX_FOLDER("jump.wav"));
+    SoundEffect::load("sfx_Hurt", FROM_SFX_FOLDER("hurt.wav"));
+    SoundEffect::load("sfx_VoidPickup", FROM_SFX_FOLDER("void_pickup.wav"));
+    SoundEffect::load("sfx_GhostPickup", FROM_SFX_FOLDER("ghost_pickup.wav"));
+}
+
+void Game::initLogic()
 {
     setState(State::MainMenu);
 }
 
 void Game::update()
 {
+    if (queuedState != State::None) setState(queuedState);
+    if (paused && unpauseTime.isExpired()) unpause();
+    if (!paused && pauseQueued) pause();
+
     allowDestruction = true;
 
     if (IsInputStarted<InputAction::Up>())
@@ -291,38 +314,33 @@ void Game::update()
         break;
     case State::Credits:
         if (IsInputStarted<InputAction::Menu>())
-            setState(State::MainMenu);
+            queueState(State::MainMenu);
 
         break;
     case State::Playing:
-        if (getStateTime().elapsed() >= COUNTDOWN)
-        {
-            if (fullMouseControl && !buttons.size())
-                buttons.emplace_back(
-                    Rectangle{ TILES_X / 2, 1, floor((WINDOW_WIDTH * (1 - 2 * MOUSE_CONTROL_AREA)) / ZOOMED_TILE_DIMENSIONS), 2 },
-                    "Pause",
-                    5,
-                    [] { Game::pause(); },
-                    true);
+        if (unpauseTime.isExpired() && fullMouseControl && !buttons.size())
+            buttons.emplace_back(
+                Rectangle{ TILES_X / 2, 1, floor((WINDOW_WIDTH * (1 - 2 * MOUSE_CONTROL_AREA)) / ZOOMED_TILE_DIMENSIONS), 2 },
+                "Pause",
+                5,
+                [] { Game::queuePause(); },
+                true);
 
-            if (!gameOver && IsInputStarted<InputAction::Menu>())
-            {
-                if (paused) queueUnpause();
-                else pause();
-            }
-            else if (!paused && !gameOver)
-            {
-                level->update();
-                view->update();
-                player->update();
-                objects.update();
-            }
+        if (!gameOver && IsInputStarted<InputAction::Menu>())
+        {
+            if (paused && unpauseTime.remaining() > COUNTDOWN) queueUnpause();
+            else if (!paused) queuePause();
+        }
+        else if (!gameOver && !paused && !pauseQueued)
+        {
+            level->update();
+            view->update();
+            player->update();
+            objects.update();
         }
 
         break;
     }
-
-    if (shouldQueueUnpause && paused) unpause();
 
     allowDestruction = false;
 }
@@ -354,10 +372,13 @@ void Game::draw()
         if (gameOver)
             DrawGameOverScreen();
         else if (paused)
-            DrawUIBox({ TILES_X / 2, TILES_Y / 2, TILES_X - 6, TILES_Y - 6 });
+        {
+            if (unpauseTime.isOngoing() && unpauseTime.remaining() <= COUNTDOWN)
+                DrawInt(ceil(unpauseTime.remaining()), WINDOW_CENTER.x, WINDOW_CENTER.y, 10 * ZOOM);
+            else
+                DrawUIBox({ TILES_X / 2, TILES_Y / 2, TILES_X - 6, TILES_Y - 6 });
+        }
 
-        if (getStateTime().elapsed() < COUNTDOWN)
-            DrawInt(ceil(COUNTDOWN - getStateTime().elapsed()), WINDOW_CENTER.x, WINDOW_CENTER.y, 10 * ZOOM);
 
         break;
     }
@@ -365,6 +386,18 @@ void Game::draw()
     for (Button& button : buttons) button.draw();
 
     EndDrawing();
+}
+
+void Game::updateTime()
+{
+    float lastFrame = GetFrameTime();
+
+    frameTime = std::min(MAX_FRAME_TIME, lastFrame);
+
+    if (!(paused || gameOver))
+        runTime += frameTime;
+
+    unpausedRunTime += lastFrame;
 }
 
 void Game::clearButtons()
@@ -380,17 +413,11 @@ void Game::run()
     game.loadTextures();
     game.loadSprites();
     game.loadAnimations();
-    game.initObjects();
+    game.loadSoundEffects();
+    game.initLogic();
 
     while (!(WindowShouldClose() || game.shouldExit))
     {
-        game.frameTime = std::min(MAX_FRAME_TIME, GetFrameTime());
-
-        if (!(game.paused || game.gameOver))
-            game.runTime += game.frameTime;
-
-        game.unpausedRunTime += game.frameTime;
-
         game.update();
 
         game.lastMousePosition = game.mousePosition;
@@ -401,8 +428,18 @@ void Game::run()
         game.draw();
 
         game.mousePosition = GetMousePosition();
+
+        bool playMusic = !game.unpausedRunTime;
+
+        game.updateTime();
+
+        SoundEffect::update();
+
+        if (playMusic)
+            SoundEffect::play("music_Main", true);
     }
 
+    CloseAudioDevice();
     CloseWindow();
 }
 
@@ -426,14 +463,20 @@ float Game::unpausedTime()
     return instance().unpausedRunTime;
 }
 
+void Game::queueState(State newState)
+{
+    Game& game = instance();
+
+    if (game.queuedState == State::None)
+        game.queuedState = newState;
+}
+
 void Game::setState(State newState)
 {
     Game& game = instance();
 
     switch (game.getState())
     {
-    case State::MainMenu:
-        break;
     case State::Playing:
         game.level.release();
         game.view.release();
@@ -454,13 +497,13 @@ void Game::setState(State newState)
             Rectangle{ TILES_X / 2, TILES_Y * 0.4f, TILES_X / 2, TILES_Y / 10 },
             "Play",
             5,
-            []{ Game::setState(State::Playing); }
+            []{ Game::queueState(State::Playing); }
         );
         game.buttons.emplace_back(
             Rectangle{ TILES_X / 2, TILES_Y * 0.5f, TILES_X / 2, TILES_Y / 10 },
             "Credits",
             5,
-            []{ Game::setState(State::Credits); }
+            []{ Game::queueState(State::Credits); }
         );
 
         int index = game.buttons.size();
@@ -489,17 +532,22 @@ void Game::setState(State newState)
             Rectangle{ TILES_X / 2, TILES_Y * 0.8f, TILES_X / 2, TILES_Y / 10 },
             "Back",
             5,
-            []{ Game::setState(State::MainMenu); });
+            []{ Game::queueState(State::MainMenu); });
 
         break;
     case State::Playing:
         game.level = std::make_unique<Level>();
         game.player = std::make_unique<Player>();
         game.view = std::make_unique<View>();
+        game.paused = true;
+        game.unpauseTime.start();
+        game.spawnTime.start();
+        game.deathTime.makeInfinite();
 
         break;
     }
 
+    game.queuedState = State::None;
     game.StateObject::setState(newState);
 }
 
@@ -526,7 +574,10 @@ bool Game::unflagDestruction()
 
 void Game::queueUnpause()
 {
-    instance().shouldQueueUnpause = true;
+    Game& game = instance();
+
+    game.unpauseTime.start();
+    game.clearButtons();
 }
 
 void Game::pause()
@@ -534,6 +585,8 @@ void Game::pause()
     Game& game = instance();
     
     game.paused = true;
+    game.pauseQueued = false;
+    game.unpauseTime.makeInfinite();
     game.clearButtons();
 
     game.buttons.emplace_back(
@@ -543,10 +596,16 @@ void Game::pause()
         [] { Game::queueUnpause(); }
     );
     game.buttons.emplace_back(
+        Rectangle{ TILES_X / 2, TILES_Y * 0.5f, TILES_X / 2, TILES_Y / 10 },
+        "Restart",
+        5,
+        [] { Game::queueState(State::Playing); }
+    );
+    game.buttons.emplace_back(
         Rectangle{ TILES_X / 2, TILES_Y * 0.6f, TILES_X / 2, TILES_Y / 10 },
         "Quit Run",
         5,
-        [] { Game::setState(State::MainMenu); }
+        [] { Game::queueState(State::MainMenu); }
     );
 }
 
@@ -555,16 +614,12 @@ void Game::unpause()
     Game& game = instance();
 
     game.paused = false;
-    game.shouldQueueUnpause = false;
     game.clearButtons();
+}
 
-    if (game.fullMouseControl)
-        game.buttons.emplace_back(
-            Rectangle{ TILES_X / 2, 1, floor((WINDOW_WIDTH * (1 - 2 * MOUSE_CONTROL_AREA)) / ZOOMED_TILE_DIMENSIONS), 2 },
-            "Pause",
-            5,
-            [] { Game::pause(); },
-            true);
+void Game::queuePause()
+{
+    instance().pauseQueued = true;
 }
 
 void Game::signalGameOver()
@@ -572,13 +627,14 @@ void Game::signalGameOver()
     Game& game = instance();
 
     game.gameOver = true;
+    game.deathTime.start();
 
     game.clearButtons();
     game.buttons.emplace_back(
         Rectangle{ TILES_X / 2, TILES_Y * 0.8f, TILES_X / 2, TILES_Y / 10 },
         "Back",
         5,
-        [] { Game::setState(State::MainMenu); });
+        [] { Game::queueState(State::MainMenu); });
 }
 
 void Game::cycleSelectedButtonUp()
@@ -613,7 +669,7 @@ void Game::selectButton(int index)
     if (game.selectedButton != -1)
         game.buttons[game.selectedButton].selected = false;
 
-    game.buttons[game.selectedButton = index].selected = true;
+    game.buttons[game.selectedButton = index].select();
 }
 
 void Game::toggleMouseControl()
@@ -641,6 +697,16 @@ Vector2 Game::getLastMousePosition()
 Vector2 Game::getLastControllerLeftStickAxis()
 {
     return instance().lastControllerLeftStickAxis;
+}
+
+float Game::getSpawnTime()
+{
+    return instance().spawnTime.getStartTime();
+}
+
+float Game::getDeathTime()
+{
+    return instance().deathTime.getStartTime();
 }
 
 Level& Game::getLevel()

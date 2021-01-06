@@ -7,7 +7,7 @@
 
 enum class SpikesState
 {
-    Turn,
+    Idle,
     Poke,
     Out,
     Retract

@@ -10,7 +10,7 @@
 Spikes::Spikes(Vector2 position) :
     PositionalObject(position),
     ColliderObject(COLLIDER),
-    StateObject(State::Turn),
+    StateObject(State::Idle),
     DestructibleObject(),
     VoidDestructibleObject() {}
 
@@ -25,7 +25,7 @@ void Spikes::update()
 
     switch (getState())
     {
-    case State::Turn:
+    case State::Idle:
         if (getStateTime().elapsed() >= COOLDOWN &&
             distance(GetRectangleCenter(Game::getPlayer().getCollider()), GetRectangleCenter(getCollider())) < ACTIVATION_DISTANCE)
             setState(State::Poke);
@@ -46,7 +46,7 @@ void Spikes::update()
     }
     case State::Retract:
         if (getStateTime().elapsed() >= Animation::get("anim_SpikesRetract").getDuration())
-            setState(State::Turn);
+            setState(State::Idle);
         break;
     }
 }
@@ -55,7 +55,7 @@ void Spikes::draw()
 {
     switch (getState())
     {
-    case State::Turn: DrawSpriteWorld(Sprite::get("spr_SpikesIdle"), position); break;
+    case State::Idle: DrawSpriteWorld(Sprite::get("spr_SpikesIdle"), position); break;
     case State::Poke: DrawSpriteWorld(Animation::get("anim_SpikesPoke").getCurrentSprite(getStateTime().elapsed()), position); break;
     case State::Out: DrawSpriteWorld(Sprite::get("spr_SpikesOut"), position); break;
     case State::Retract: DrawSpriteWorld(Animation::get("anim_SpikesRetract").getCurrentSprite(getStateTime().elapsed()), position); break;

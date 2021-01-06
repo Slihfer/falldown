@@ -2,19 +2,35 @@
 
 #include "core/Game.h"
 
-Timepoint::Timepoint(float startTime) : startTime(startTime) {}
+Timepoint::Timepoint(bool useUnpausedTime) :
+    startTime(useUnpausedTime ? Game::unpausedTime() : Game::time()),
+    useUnpausedTime(useUnpausedTime) {}
+
+Timepoint::Timepoint(float startTime, bool useUnpausedTime) :
+    startTime(startTime),
+    useUnpausedTime(useUnpausedTime) {}
 
 void Timepoint::start()
 {
-    startTime = Game::time();
+    startTime = getCurrentTime();
+}
+
+void Timepoint::makeInfinite()
+{
+    startTime = std::numeric_limits<float>::infinity();
 }
 
 float Timepoint::elapsed() const
 {
-    return Game::time() - startTime;
+    return getCurrentTime() - startTime;
 }
 
-float Timepoint::currentTime()
+float Timepoint::getStartTime() const
 {
-    return Game::time();
+    return startTime;
+}
+
+float Timepoint::getCurrentTime() const
+{
+    return useUnpausedTime ? Game::unpausedTime() : Game::time();
 }

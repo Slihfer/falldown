@@ -27,4 +27,7 @@ public:
 public:
     void update();
     void draw();
+
+    void select();
+    void triggerAction();
 };

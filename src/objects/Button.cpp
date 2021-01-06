@@ -4,6 +4,7 @@
 #include "core/input.h"
 #include "draw/draw.h"
 #include "util/rectangle.h"
+#include "sound/SoundEffect.h"
 
 Button::Button(
     Rectangle shape,
@@ -16,16 +17,13 @@ Button::Button(
     fontSize(fontSize),
     action(action),
     index(Game::getNextButtonIndex()),
-    selected(Game::getSelectedButtonIndex() == index),
+    selected(!mouseOnly && Game::getSelectedButtonIndex() == index),
     mouseOnly(mouseOnly) {}
 
 void Button::update()
 {
-    if (mouseOnly)
-        selected = false;
-
     if (!mouseOnly && selected && IsInputStarted<InputAction::Select>())
-        action();
+        triggerAction();
     else if (
         CheckCollisionPointRec(
             Game::getMousePosition(),
@@ -33,11 +31,14 @@ void Button::update()
                 (GetRectanglePosition(shape) - 0.5f * GetRectangleDimensions(shape)) * TILE_DIMENSIONS * ZOOM,
                 GetRectangleDimensions(shape) * ZOOM * TILE_DIMENSIONS)))
     {
-        Game::selectButton(index);
+        if (!selected)
+            Game::selectButton(index);
 
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-            action();
+            triggerAction();
     }
+    else if (mouseOnly)
+        selected = false;
 }
 
 void Button::draw()
@@ -99,4 +100,18 @@ void Button::draw()
         true);
     
     DrawText(label.c_str(), (shape.x * TILE_DIMENSIONS * ZOOM - MeasureText(label.c_str(), fontSize * ZOOM) / 2), (shape.y * TILE_DIMENSIONS - fontSize / 2) * ZOOM, fontSize * ZOOM, WHITE);
+}
+
+void Button::select()
+{
+    selected = true;
+
+    SoundEffect::playMulti("sfx_ButtonCycle");
+}
+
+void Button::triggerAction()
+{
+    action();
+
+    SoundEffect::playMulti("sfx_Accept");
 }

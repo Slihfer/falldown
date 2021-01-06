@@ -6,6 +6,7 @@
 #include "draw/draw.h"
 #include "util/collision.h"
 #include "util/rectangle.h"
+#include "sound/SoundEffect.h"
 
 Blob::Blob(Vector2 position) :
     PositionalObject(position),
@@ -39,6 +40,8 @@ void Blob::update()
         {
             setState(State::Turn);
             velocity.x = 0;
+
+            SoundEffect::playMulti("sfx_BlobJump");
         }
         else
         {

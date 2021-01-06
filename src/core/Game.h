@@ -14,6 +14,7 @@
 #include "util/ObjectContainer.h"
 
 constexpr int TARGET_FPS = 60;
+constexpr float TARGET_FRAME_TIME = 1.0f / TARGET_FPS;
 constexpr float MAX_FRAME_TIME = 0.05f;
 constexpr float COUNTDOWN = 3;
 
@@ -40,13 +41,17 @@ private:
     bool allowDestruction;
     bool destructionFlag;
     bool paused;
-    bool shouldQueueUnpause;
+    bool pauseQueued;
+    Duration unpauseTime;
+    State queuedState;
     bool gameOver;
     bool fullMouseControl;
     int selectedButton;
     Vector2 mousePosition;
     Vector2 lastMousePosition;
     Vector2 lastControllerLeftStickAxis;
+    Timepoint spawnTime;
+    Timepoint deathTime;
 
     ObjectContainer<
         Blob,
@@ -74,10 +79,13 @@ private:
     void loadTextures();
     void loadSprites();
     void loadAnimations();
-    void initObjects();
+    void loadSoundEffects();
+    void initLogic();
 
     void update();
     void draw();
+
+    void updateTime();
 
     template <class T>
     void updateDestructibles(std::vector<T>& destructibles)
@@ -97,7 +105,7 @@ private:
             }
         }
     }
-
+    
     void clearButtons();
 
 //Class Methods
@@ -113,11 +121,13 @@ public:
     static float delta();
     static float time();
     static float unpausedTime();
+    static void queueState(State newState);
     static void setState(State newState);
     static void flagDestruction();
     static bool unflagDestruction();
     static void pause();
     static void unpause();
+    static void queuePause();
     static void queueUnpause();
 
     static void signalGameOver();
@@ -131,6 +141,8 @@ public:
     static Vector2 getMousePosition();
     static Vector2 getLastMousePosition();
     static Vector2 getLastControllerLeftStickAxis();
+    static float getSpawnTime();
+    static float getDeathTime();
 
     static Level& getLevel();
     static View& getView();
