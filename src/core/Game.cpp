@@ -40,6 +40,7 @@ Game::Game() :
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "falldown");
     SetTargetFPS(TARGET_FPS);
+    SetWindowTitle(GAME_TITLE);
     SetExitKey(0);
 
     InitAudioDevice();
@@ -287,9 +288,13 @@ void Game::loadSoundEffects()
     SoundEffect::load("sfx_BlobJump", FROM_SFX_FOLDER("blob_jump.wav"), 0.2f);
     SoundEffect::load("sfx_Jump", FROM_SFX_FOLDER("jump.wav"), 0.5f);
     SoundEffect::load("sfx_Hurt", FROM_SFX_FOLDER("hurt.wav"), 0.65f);
-    SoundEffect::load("sfx_Land", FROM_SFX_FOLDER("land.wav"), 0.35f);
+    SoundEffect::load("sfx_Die", FROM_SFX_FOLDER("die.wav"), 0.65f);
+    SoundEffect::load("sfx_Land", FROM_SFX_FOLDER("land.wav"), 0.25f);
     SoundEffect::load("sfx_Spikes", FROM_SFX_FOLDER("spikes.wav"), 0.35f);
+    SoundEffect::load("sfx_LaserCharge", FROM_SFX_FOLDER("laser0.wav"), 0.2f);
+    SoundEffect::load("sfx_LaserShoot", FROM_SFX_FOLDER("laser1.wav"), 0.2f);
     SoundEffect::load("sfx_VoidPickup", FROM_SFX_FOLDER("void_pickup.wav"), 1.5f);
+    SoundEffect::load("sfx_VoidAura", FROM_SFX_FOLDER("void_aura.wav"), 1.5f);
     SoundEffect::load("sfx_GhostPickup", FROM_SFX_FOLDER("ghost_pickup.wav"), 0.5f);
 }
 
@@ -361,6 +366,12 @@ void Game::draw()
     {
     case State::MainMenu:
         DrawMenuBackground();
+        DrawText(
+            GAME_TITLE,
+            (LEVEL_WIDTH * ZOOM - MeasureText(GAME_TITLE, 15.0f * ZOOM)) * 0.5f,
+            (LEVEL_HEIGHT * 0.3f - 7.5f) * ZOOM,
+            15.0f * ZOOM,
+            WHITE);
         break;
     case State::Credits:
         DrawMenuBackground();
@@ -382,7 +393,15 @@ void Game::draw()
             if (unpauseTime.isOngoing() && unpauseTime.remaining() <= COUNTDOWN)
                 DrawInt(ceil(unpauseTime.remaining()), WINDOW_CENTER.x, WINDOW_CENTER.y, 10 * ZOOM);
             else
+            {
                 DrawUIBox({ TILES_X / 2, TILES_Y / 2, TILES_X - 6, TILES_Y - 6 });
+                DrawText(
+                    "Paused",
+                    (LEVEL_WIDTH * ZOOM - MeasureText("Paused", 10.0f * ZOOM)) * 0.5f,
+                    (LEVEL_HEIGHT * 0.25f - 5.0f) * ZOOM,
+                    10.0f * ZOOM,
+                    BLACK);
+            }
         }
 
 
@@ -422,6 +441,9 @@ void Game::run()
     game.loadSoundEffects();
     game.initLogic();
 
+    Image icon = LoadImage(FROM_SPRITES_FOLDER("icon.png"));
+    SetWindowIcon(icon);
+
     while (!(WindowShouldClose() || game.shouldExit))
     {
         game.update();
@@ -444,6 +466,8 @@ void Game::run()
         if (playMusic)
             SoundEffect::play("music_Main", true);
     }
+
+    UnloadImage(icon);
 
     CloseAudioDevice();
     CloseWindow();
@@ -500,13 +524,13 @@ void Game::setState(State newState)
     case State::MainMenu:
     {
         game.buttons.emplace_back(
-            Rectangle{ TILES_X / 2, TILES_Y * 0.4f, TILES_X / 2, TILES_Y / 10 },
+            Rectangle{ TILES_X / 2, TILES_Y * 0.5f, TILES_X / 2, TILES_Y / 10 },
             "Play",
             5,
             []{ Game::queueState(State::Playing); }
         );
         game.buttons.emplace_back(
-            Rectangle{ TILES_X / 2, TILES_Y * 0.5f, TILES_X / 2, TILES_Y / 10 },
+            Rectangle{ TILES_X / 2, TILES_Y * 0.6f, TILES_X / 2, TILES_Y / 10 },
             "Credits",
             5,
             []{ Game::queueState(State::Credits); }
@@ -514,7 +538,7 @@ void Game::setState(State newState)
 
         int index = game.buttons.size();
         game.buttons.emplace_back(
-            Rectangle{ TILES_X / 2, TILES_Y * 0.6f, TILES_X / 2, TILES_Y / 10 },
+            Rectangle{ TILES_X / 2, TILES_Y * 0.7f, TILES_X / 2, TILES_Y / 10 },
             game.fullMouseControl ? "Disable Mouse Controls" : "Enable Mouse Controls",
             5,
             [&game, index]
@@ -525,7 +549,7 @@ void Game::setState(State newState)
         );
 
         game.buttons.emplace_back(
-            Rectangle{ TILES_X / 2, TILES_Y * 0.7f, TILES_X / 2, TILES_Y / 10 },
+            Rectangle{ TILES_X / 2, TILES_Y * 0.8f, TILES_X / 2, TILES_Y / 10 },
             "Exit",
             5,
             []{ Game::exit(); }
@@ -596,19 +620,19 @@ void Game::pause()
     game.clearButtons();
 
     game.buttons.emplace_back(
-        Rectangle{ TILES_X / 2, TILES_Y * 0.4f, TILES_X / 2, TILES_Y / 10 },
+        Rectangle{ TILES_X / 2, TILES_Y * 0.6f, TILES_X / 2, TILES_Y / 10 },
         "Resume",
         5,
         [] { Game::queueUnpause(); }
     );
     game.buttons.emplace_back(
-        Rectangle{ TILES_X / 2, TILES_Y * 0.5f, TILES_X / 2, TILES_Y / 10 },
+        Rectangle{ TILES_X / 2, TILES_Y * 0.7f, TILES_X / 2, TILES_Y / 10 },
         "Restart",
         5,
         [] { Game::queueState(State::Playing); }
     );
     game.buttons.emplace_back(
-        Rectangle{ TILES_X / 2, TILES_Y * 0.6f, TILES_X / 2, TILES_Y / 10 },
+        Rectangle{ TILES_X / 2, TILES_Y * 0.8f, TILES_X / 2, TILES_Y / 10 },
         "Quit Run",
         5,
         [] { Game::queueState(State::MainMenu); }
@@ -637,8 +661,13 @@ void Game::signalGameOver()
 
     game.clearButtons();
     game.buttons.emplace_back(
+        Rectangle{ TILES_X / 2, TILES_Y * 0.7f, TILES_X / 2, TILES_Y / 10 },
+        "Restart",
+        5,
+        [] { Game::queueState(State::Playing); });
+    game.buttons.emplace_back(
         Rectangle{ TILES_X / 2, TILES_Y * 0.8f, TILES_X / 2, TILES_Y / 10 },
-        "Back",
+        "Back to Menu",
         5,
         [] { Game::queueState(State::MainMenu); });
 }

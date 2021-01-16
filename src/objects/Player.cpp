@@ -22,6 +22,7 @@ Player::Player() :
 
 void Player::die()
 {
+    SoundEffect::play("sfx_Die");
     Game::signalGameOver();
 }
 
@@ -102,10 +103,10 @@ void Player::update()
 
 void Player::draw()
 {
+    DrawUIBox({ 2, 1, 4.0f, 2 });
+
     for (int i = 0; i < health; ++i)
         DrawSpriteScreen(Sprite::get("spr_PlayerLife"), i * TILE_DIMENSIONS + 4, 4);
-
-    DrawUIBox({ 2, 1, 4.0f, 2 });
 
     if (hitStunTime.isOngoing())
         DrawSpriteWorld(Animation::get("anim_PlayerHurt").getCurrentSprite(hitStunTime.elapsed()), position, looksLeft);
@@ -178,6 +179,7 @@ void Player::voidPowerup()
     voidPowerupTime.start();
 
     SoundEffect::playMulti("sfx_VoidPickup");
+    SoundEffect::play("sfx_VoidAura");
 }
 
 bool Player::isInvulnerable()

@@ -99,7 +99,7 @@ void Button::draw()
         (shape.y + shape.height / 2 - 1) * TILE_DIMENSIONS,
         true);
     
-    DrawText(label.c_str(), (shape.x * TILE_DIMENSIONS * ZOOM - MeasureText(label.c_str(), fontSize * ZOOM) / 2), (shape.y * TILE_DIMENSIONS - fontSize / 2) * ZOOM, fontSize * ZOOM, WHITE);
+    DrawText(label.c_str(), (shape.x * TILE_DIMENSIONS * ZOOM - MeasureText(label.c_str(), fontSize * ZOOM) / 2), (shape.y * TILE_DIMENSIONS - fontSize / 2) * ZOOM, fontSize * ZOOM, selected ? Color{ 225, 92, 77, 255 } : Color{ 75, 30, 26, 255 });
 }
 
 void Button::select()

@@ -25,12 +25,18 @@ void DrawGameOverScreen()
         5.0f * ZOOM,
         WHITE);
     DrawInt(
-        Game::getPlayer().y,
-        LEVEL_WIDTH * ZOOM * 0.75f,
+        Game::getPlayer().y / TILE_DIMENSIONS - TILES_Y + 2,
+        LEVEL_WIDTH * ZOOM * 0.75f - MeasureText("m", 6.0f * ZOOM),
         (LEVEL_HEIGHT * 0.5f - 3.5f) * ZOOM,
         7.0f * ZOOM,
         WHITE,
         TextAlignment::Right);
+    DrawText(
+        "m",
+        LEVEL_WIDTH * ZOOM * 0.75f - MeasureText("m", 5.0f * ZOOM),
+        (LEVEL_HEIGHT * 0.5f - 2.5f) * ZOOM,
+        5.0f * ZOOM,
+        WHITE);
 
     DrawText(
         "Time survived:",

@@ -1,4 +1,4 @@
 cmake_minimum_required(VERSION 3.17)
 
-project(falldown)
+project(Wrap)
 add_subdirectory(src)

@@ -14,7 +14,7 @@
 #include "util/ObjectContainer.h"
 
 constexpr int TARGET_FPS = 60;
-constexpr float TARGET_FRAME_TIME = 1.0f / TARGET_FPS;
+constexpr float TARGET_FRAME_TIME = 1.0f / (TARGET_FPS ? TARGET_FPS : 60);
 constexpr float MAX_FRAME_TIME = 0.05f;
 constexpr float COUNTDOWN = 3;
 

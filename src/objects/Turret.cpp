@@ -4,6 +4,7 @@
 #include "draw/Animation.h"
 #include "util/rectangle.h"
 #include "draw/draw.h"
+#include "sound/SoundEffect.h"
 
 Turret::Turret(Vector2 position, bool looksLeft) :
     PositionalObject(position),
@@ -27,12 +28,18 @@ void Turret::update()
     {
     case State::Idle:
         if (abs(Game::getPlayer().y - y) < ACTIVATION_DISTANCE)
+        {
             setState(State::Charge);
+            SoundEffect::playMulti("sfx_LaserCharge");
+        }
 
         break;
     case State::Charge:
         if (getStateTime().elapsed() >= Animation::get("anim_TurretBeamCharge").getDuration())
+        {
             setState(State::Shoot);
+            SoundEffect::playMulti("sfx_LaserShoot");
+        }
 
         break;
     case State::Shoot:
