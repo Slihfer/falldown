@@ -3,6 +3,7 @@ AppName=Ground
 AppVersion=1.0
 DefaultDirName={autopf64}/Ground
 DefaultGroupName=Ground
+OutputBaseFilename=ground_setup
 
 [Files]
 Source: "out\build\x64-Release\src\Ground.exe"; DestDir: "{app}"; 
