@@ -2,7 +2,7 @@
 
 #include "core/Game.h"
 
-SoundEffect::SoundEffect(const std::string& filePath) :
+SoundEffect::SoundEffect(const std::string& filePath, float volume, float pitch) :
     sound(LoadSound(filePath.c_str())),
     duration(0),
     repeat(false)
@@ -10,6 +10,8 @@ SoundEffect::SoundEffect(const std::string& filePath) :
     Music tmp = LoadMusicStream(filePath.c_str());
     duration = Duration(GetMusicTimeLength(tmp) - TARGET_FRAME_TIME, true);
     UnloadMusicStream(tmp);
+    SetSoundVolume(sound, volume);
+    SetSoundPitch(sound, pitch);
 }
 
 SoundEffect::~SoundEffect()

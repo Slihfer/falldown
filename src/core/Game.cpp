@@ -86,7 +86,6 @@ void Game::loadSprites()
     Sprite::load("spr_PlayerSlowJump", TextureInfo::get("tex_Player").texture, Rectangle{ 8, 16, 8, 8 });
     Sprite::load("spr_PlayerHover", TextureInfo::get("tex_Player").texture, Rectangle{ 16, 16, 8, 8 });
     Sprite::load("spr_PlayerFall", TextureInfo::get("tex_Player").texture, Rectangle{ 24, 16, 8, 8 });
-    Sprite::load("spr_PlayerHurt", TextureInfo::get("tex_Player").texture, Rectangle{ 16, 0, 8, 8 });
 
     Sprite::load("spr_GhostAura", TextureInfo::get("tex_GhostAura").texture, Rectangle{ 0, 0, 16, 16 });
     Sprite::load("spr_VoidAura", TextureInfo::get("tex_VoidAura").texture, Rectangle{ 0, 0, 40, 40 });
@@ -143,6 +142,11 @@ void Game::loadAnimations()
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 0, 8, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 16, 8, 8, 8 } }, 0.1f },
         Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 0, 8, 8, 8 } }, 0.1f });
+
+    Animation::load("anim_PlayerHurt",
+        Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 16, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 24, 0, 8, 8 } }, 0.1f },
+        Animation::Frame{ { TextureInfo::get("tex_Player").texture, { 16, 0, 8, 8 } }, 0.0f });
 
     Animation::load("anim_VoidAuraSpawn",
         Animation::Frame{ { TextureInfo::get("tex_VoidAura").texture, { 80, 0, 40, 40 } }, 0.05f },
@@ -276,15 +280,17 @@ void Game::loadAnimations()
 
 void Game::loadSoundEffects()
 {
-    SoundEffect::load("music_Main", FROM_MUSIC_FOLDER("bg_music.wav"));
+    SoundEffect::load("music_Main", FROM_MUSIC_FOLDER("bg_music.wav"), 1.0f);
 
-    SoundEffect::load("sfx_ButtonCycle", FROM_SFX_FOLDER("button_cycle.wav"));
-    SoundEffect::load("sfx_Accept", FROM_SFX_FOLDER("accept.wav"));
-    SoundEffect::load("sfx_BlobJump", FROM_SFX_FOLDER("blob_jump.wav"));
-    SoundEffect::load("sfx_Jump", FROM_SFX_FOLDER("jump.wav"));
-    SoundEffect::load("sfx_Hurt", FROM_SFX_FOLDER("hurt.wav"));
-    SoundEffect::load("sfx_VoidPickup", FROM_SFX_FOLDER("void_pickup.wav"));
-    SoundEffect::load("sfx_GhostPickup", FROM_SFX_FOLDER("ghost_pickup.wav"));
+    SoundEffect::load("sfx_ButtonCycle", FROM_SFX_FOLDER("button_cycle.wav"), 0.6f);
+    SoundEffect::load("sfx_Accept", FROM_SFX_FOLDER("accept.wav"), 0.8f);
+    SoundEffect::load("sfx_BlobJump", FROM_SFX_FOLDER("blob_jump.wav"), 0.2f);
+    SoundEffect::load("sfx_Jump", FROM_SFX_FOLDER("jump.wav"), 0.5f);
+    SoundEffect::load("sfx_Hurt", FROM_SFX_FOLDER("hurt.wav"), 0.65f);
+    SoundEffect::load("sfx_Land", FROM_SFX_FOLDER("land.wav"), 0.35f);
+    SoundEffect::load("sfx_Spikes", FROM_SFX_FOLDER("spikes.wav"), 0.35f);
+    SoundEffect::load("sfx_VoidPickup", FROM_SFX_FOLDER("void_pickup.wav"), 1.5f);
+    SoundEffect::load("sfx_GhostPickup", FROM_SFX_FOLDER("ghost_pickup.wav"), 0.5f);
 }
 
 void Game::initLogic()

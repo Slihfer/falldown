@@ -15,7 +15,7 @@ private:
     bool repeat;
 
 public:
-    SoundEffect(const std::string& filePath);
+    SoundEffect(const std::string& filePath, float volume = 1.0f, float pitch = 1.0f);
     ~SoundEffect();
 
 public:

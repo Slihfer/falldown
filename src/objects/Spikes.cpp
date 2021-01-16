@@ -6,6 +6,7 @@
 #include "draw/Animation.h"
 #include "util/rectangle.h"
 #include "util/vector.h"
+#include "sound/SoundEffect.h"
 
 Spikes::Spikes(Vector2 position) :
     PositionalObject(position),
@@ -28,7 +29,10 @@ void Spikes::update()
     case State::Idle:
         if (getStateTime().elapsed() >= COOLDOWN &&
             distance(GetRectangleCenter(Game::getPlayer().getCollider()), GetRectangleCenter(getCollider())) < ACTIVATION_DISTANCE)
+        {
             setState(State::Poke);
+            SoundEffect::playMulti("sfx_Spikes");
+        }
         break;
     case State::Poke:
         if (getStateTime().elapsed() >= Animation::get("anim_SpikesPoke").getDuration())

@@ -79,12 +79,15 @@ void Player::update()
     applyVelocity();
 
     if (!isState(State::Air) || (hitStunTime.isExpired() && (IsInputActive<InputAction::Left>() || IsInputActive<InputAction::Right>())))
-        velocity *= 1.0f - FRICTION * Game::delta();
-    velocity *= 1.0f - DRAG * Game::delta();
+        velocity *= max({}, 1.0f - FRICTION * Game::delta());
+    velocity *= max({}, 1.0f - DRAG * Game::delta());
 
     if (Game::getLevel().handleCollision(position, COLLIDER, velocity).y < 0)
     {
         coyoteTime.start();
+
+        if (getState() == State::Air)
+            SoundEffect::playMulti("sfx_Land");
 
         if (velocity.x == 0)
             setStateIfChanged(State::Idle);
@@ -105,9 +108,8 @@ void Player::draw()
     DrawUIBox({ 2, 1, 4.0f, 2 });
 
     if (hitStunTime.isOngoing())
-        DrawSpriteWorld(Sprite::get("spr_PlayerHurt"), position, looksLeft);
-    else
-        switch (getState())
+        DrawSpriteWorld(Animation::get("anim_PlayerHurt").getCurrentSprite(hitStunTime.elapsed()), position, looksLeft);
+    else switch (getState())
         {
         case State::Idle:
             DrawSpriteWorld(Animation::get("anim_PlayerIdle").getCurrentSprite(getStateTime().elapsed(), true), position, looksLeft);
@@ -148,14 +150,19 @@ void Player::damage(Vector2 knockback, float hitStun)
     if (!isInvulnerable())
     {
         if (!--health)
+        {
             die();
+        }
+        else
+        {
+            invulnerabilityTime.start(hitStun * 2.0f);
 
-        invulnerabilityTime.start(hitStun * 2.0f);
+            velocity = knockback;
+
+            SoundEffect::play("sfx_Hurt");
+        }
+
         hitStunTime.start(hitStun);
-
-        velocity = knockback;
-
-        SoundEffect::play("sfx_Hurt");
     }
 }
 
