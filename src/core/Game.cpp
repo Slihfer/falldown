@@ -325,7 +325,10 @@ void Game::update()
         break;
     case State::Credits:
         if (IsInputStarted<InputAction::Menu>())
+        {
             queueState(State::MainMenu);
+            SoundEffect::playMulti("sfx_Accept");
+        }
 
         break;
     case State::Playing:
@@ -339,8 +342,16 @@ void Game::update()
 
         if (!gameOver && IsInputStarted<InputAction::Menu>())
         {
-            if (paused && unpauseTime.remaining() > COUNTDOWN) queueUnpause();
-            else if (!paused) queuePause();
+            if (paused && unpauseTime.remaining() > COUNTDOWN)
+            {
+                queueUnpause();
+                SoundEffect::playMulti("sfx_Accept");
+            }
+            else if (!paused)
+            {
+                queuePause();
+                SoundEffect::playMulti("sfx_Accept");
+            }
         }
         else if (!gameOver && !paused && !pauseQueued)
         {
