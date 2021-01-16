@@ -400,7 +400,7 @@ void Game::draw()
                     (LEVEL_WIDTH * ZOOM - MeasureText("Paused", 10.0f * ZOOM)) * 0.5f,
                     (LEVEL_HEIGHT * 0.25f - 5.0f) * ZOOM,
                     10.0f * ZOOM,
-                    BLACK);
+                    WHITE);
             }
         }
 
