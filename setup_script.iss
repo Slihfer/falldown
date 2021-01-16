@@ -5,9 +5,9 @@ DefaultDirName={autopf64}/Ground
 DefaultGroupName=Ground
 
 [Files]
-Source: "out\build\x64-Release\src\Ground.exe"; DestDir: "{app}"
-Source: "assets\graphics\sprites\*.png"; DestDir: "{app}/assets/graphics/sprites/"
-Source: "assets\audio\music\*.wav"; DestDir: "{app}/assets/audio/m/"
+Source: "out\build\x64-Release\src\Ground.exe"; DestDir: "{app}"; 
+Source: "assets\graphics\sprites\*.png"; Excludes: "*.png~"; DestDir: "{app}/assets/graphics/sprites/"
+Source: "assets\audio\music\*.wav"; DestDir: "{app}/assets/audio/music/"
 Source: "assets\audio\sfx\*.wav"; DestDir: "{app}/assets/audio/sfx/"
 
 [Tasks]
