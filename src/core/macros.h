@@ -1,6 +1,6 @@
 #pragma once
 
-#define SETUP 0
+#define SETUP 1
 
 #if SETUP
 #define FROM_GAME_FOLDER(path) (std::string(GetWorkingDirectory()).append("/").append(path)).c_str()

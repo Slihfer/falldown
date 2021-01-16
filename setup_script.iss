@@ -6,9 +6,9 @@ DefaultGroupName=Ground
 
 [Files]
 Source: "out\build\x64-Release\src\Ground.exe"; DestDir: "{app}"
-Source: "assets\graphics\sprites\*"; DestDir: "{app}/assets/graphics/sprites/"
-Source: "assets\audio\music\*"; DestDir: "{app}/assets/audio/m/"
-Source: "assets\audio\sfx\*"; DestDir: "{app}/assets/audio/sfx/"
+Source: "assets\graphics\sprites\*.png"; DestDir: "{app}/assets/graphics/sprites/"
+Source: "assets\audio\music\*.wav"; DestDir: "{app}/assets/audio/m/"
+Source: "assets\audio\sfx\*.wav"; DestDir: "{app}/assets/audio/sfx/"
 
 [Tasks]
 Name: startmenu; Description: "Create a startmenu shortcut"; Flags: unchecked
