@@ -2,10 +2,10 @@
 
 #include <raylib.h>
 
-#include "core/constants.h""
-#include "core/Game.h""
-#include "draw/draw.h""
-#include "MenuBackground.h""
+#include "core/constants.h"
+#include "core/Game.h"
+#include "draw/draw.h"
+#include "MenuBackground.h"
 
 void DrawGameOverScreen()
 {
