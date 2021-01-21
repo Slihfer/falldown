@@ -9,6 +9,9 @@ ckwk/
 *.kra
 *.kra~
 
+# Inno Setup
+/Output/
+
 # CMake
 /out/
 
