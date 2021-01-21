@@ -6,7 +6,8 @@ DefaultGroupName=Ground
 OutputBaseFilename=ground_setup
 
 [Files]
-Source: "out\build\x64-Release\src\Ground.exe"; DestDir: "{app}"; 
+Source: "out\build\x64-Release\src\Ground.exe"; DestDir: "{app}"
+Source: "readme.txt"; DestDir: "{app}"
 Source: "assets\graphics\sprites\*.png"; Excludes: "*.png~"; DestDir: "{app}/assets/graphics/sprites/"
 Source: "assets\audio\music\*.wav"; DestDir: "{app}/assets/audio/music/"
 Source: "assets\audio\sfx\*.wav"; DestDir: "{app}/assets/audio/sfx/"

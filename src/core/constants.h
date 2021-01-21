@@ -3,7 +3,7 @@
 //TODO move stuff
 
 constexpr char GAME_TITLE[] = "Ground";
-constexpr int ZOOM = 5;
+constexpr int ZOOM = 4;
 constexpr int TILE_DIMENSIONS = 8;
 constexpr int HALF_TILE_DIMENSIONS = TILE_DIMENSIONS / 2;
 constexpr int BACKGROUND_TILE_DIMENSIONS = TILE_DIMENSIONS * 4;
