@@ -1,4 +1,4 @@
-Student project mainly focused on functionality.
+Solo student project mainly focused on functionality.
 
 
 Fall until you die.
